@@ -14,8 +14,6 @@ const signer = provider.getSigner();
 const contract = new ethers.Contract(contractAddress, contractAbi, signer);
 
 const App = () => {
-  const [walletConnected, setWalletConnected] = useState(false);
-  const [userAccount, setUserAccount] = useState("");
   const [totalPayout, setTotalPayout] = useState(47);
   const [employees, setEmployees] = useState([]);
   const [txs, setTxs] = useState([]);
@@ -50,7 +48,6 @@ const App = () => {
   }, [employees]);
 
   const { activate } = useWeb3React();
-
   const connectWallet = async () => {
     if (window.ethereum) {
       const walletType = getWalletType();
@@ -69,8 +66,9 @@ const App = () => {
     try {
       const response = await axios.get("http://localhost:3500/all");
       setEmployees(response.data);
-    } catch (err) {
-      console.error("Ошибка отображения сотрудников", err);
+    } catch (error) {
+      console.error("Ошибка отображения сотрудников: ", error);
+      alert("Ошибка отображения сотрудников");
     }
   };
 
@@ -104,32 +102,6 @@ const App = () => {
       ...newEmployee,
       [name]: value,
     });
-
-    if (name === "fullName") {
-      if (value.length > 0) {
-        setError("");
-      } else {
-        setError("Введите ФИО сотрудника");
-      }
-    }
-
-    if (name === "walletAddress") {
-      if (value.startsWith("0x") && value.length === 42) {
-        setError("");
-      } else if (!value.startsWith("0x")) {
-        setError('Адрес кошелька должен начинаться с "0x"');
-      } else if (!value.length !== 42) {
-        setError("Адрес кошелька должен иметь длину 42 символа");
-      }
-    }
-
-    if (name === "salary") {
-      if (!isNaN(Number(value))) {
-        setError("");
-      } else {
-        setError("Оклад должен быть числом");
-      }
-    }
   };
 
   const handleEditInputChange = (e) => {
@@ -179,22 +151,16 @@ const App = () => {
       setError("Введите ФИО сотрудника");
       return false;
     }
-
     if (
       employees.some((employee) => employee.fullName === newEmployee.fullName)
     ) {
-      // вылезает за модальное окно
-      setError(
-        "Такой сотрудник уже работает. Для изменения адреса кошелька необходимо сначала удалить сотрудника из базы и потом добавить его заново с новым адресом."
-      );
+      setError("Такой сотрудник уже работает");
       return false;
     }
-
     if (newEmployee.walletAddress === "") {
       setError("Введите адрес кошелька сотрудника");
       return false;
     }
-
     if (
       !newEmployee.walletAddress.startsWith("0x") ||
       newEmployee.walletAddress.length !== 42
@@ -204,25 +170,21 @@ const App = () => {
       );
       return false;
     }
-
     if (newEmployee.salary === "") {
       setError("Введите оклад сотрудника");
       return false;
     }
-
     if (isNaN(Number(newEmployee.salary))) {
       setError("Оклад должен быть числом");
       return false;
     }
-
     return true;
   };
 
   const addEmployee = async (e) => {
     e.preventDefault();
-
     if (validateForm()) {
-      console.log("Пробуем");
+      let receipt;
 
       try {
         const tx = await contract.addEmployee(
@@ -231,27 +193,33 @@ const App = () => {
             BigNumber.from("1000000000000000000")
           )
         );
-        const receipt = await tx.wait();
-        console.log("receipt.status: %s", receipt.status);
+        receipt = await tx.wait();
+      } catch (error) {
+        alert("Ограничение в смарт контракте");
+        console.error(
+          "Не удалось добавить сотрудника в смарт контракт: ",
+          error
+        );
+      }
 
-        if (receipt.status === 1) {
+      if (receipt.status === 1) {
+        try {
           await axios.post("http://localhost:3500/employees", {
             fullName: newEmployee.fullName,
             walletAddress: newEmployee.walletAddress,
             salary: newEmployee.salary,
           });
-
-          console.log("Прошли");
           fetchEmployees();
           handleModalClose();
-        } else {
-          console.log("Не удалось выполнить транзакцию на смарт-контракте");
+        } catch (error) {
+          alert("Ограничение в базе данных");
+          console.error(
+            "Не удалось добавить сотрудника в базу данных: ",
+            error
+          );
         }
-      } catch (err) {
-        console.error(
-          "Ошибка при выполнении транзакции на смарт-контракте: ",
-          err
-        );
+      } else {
+        console.log("Ошибка при выполнении транзакции на смарт-контракте");
       }
     }
   };
@@ -272,7 +240,7 @@ const App = () => {
       const employeeNumber = await contract.checkEmployeeNumber(
         editWalletAddress
       );
-      console.log(`Номер ${employeeNumber}`);
+      console.log(`Номер сотрудника: ${employeeNumber}`);
       if (editSalary !== 0) {
         const salaryData = {
           walletAddress: editWalletAddress,
@@ -284,10 +252,10 @@ const App = () => {
         const receiptSalary = await txSalary.wait();
         salaryData.salary = editSalary;
         await axios.put("http://localhost:3500/employees/patch", salaryData);
-        console.log(`ok`);
+        console.log("Оклад поменяли");
 
         if (receiptSalary.status !== 1)
-          throw new Error("Failed to update employee salary in smart contract");
+          console.log("Не удалось обновить оклад сотрудника");
       }
 
       if (editBonus !== 0) {
@@ -302,9 +270,9 @@ const App = () => {
         const receiptBonus = await txBonus.wait();
         bonusData.bonus = editBonus;
         await axios.put("http://localhost:3500/employees/patch", bonusData);
-        console.log(`ok`);
+        console.log("Премию поменяли");
         if (receiptBonus.status !== 1)
-          throw new Error("Failed to update employee bonus in smart contract");
+          console.log("Не удалось обновить премию сотрудника");
       }
 
       if (editPenalty !== 0) {
@@ -319,15 +287,13 @@ const App = () => {
         const receiptPenalty = await txPenalty.wait();
         penaltyData.penalty = editPenalty;
         await axios.put("http://localhost:3500/employees/patch", penaltyData);
-        console.log(`ok`);
+        console.log("Штрафы поменяли");
         if (receiptPenalty.status !== 1)
-          throw new Error(
-            "Failed to update employee penalty in smart contract"
-          );
+          console.log("Не удалось обновить штрафы сотрудника");
       }
       fetchEmployees();
     } catch (error) {
-      console.error(error);
+      console.error("Редактирование не завершено: ", error);
       fetchEmployees();
       alert("Редактирование не завершено");
     }
@@ -346,36 +312,40 @@ const App = () => {
   };
 
   const deleteTheEmployee = async () => {
-    console.log("Начинаем удаление сотрудника");
     const data = {
       walletAddress: editWalletAddress,
     };
+
+    let receipt;
+
     try {
       const employeeNumber = await contract.checkEmployeeNumber(
         editWalletAddress.toString()
       );
-
-      console.log(`number: ${employeeNumber}`);
+      console.log(`Номер сотрудника: ${employeeNumber}`);
       const tx = await contract.deleteEmployee(employeeNumber);
-      const receipt = await tx.wait();
-      console.log("receipt.status: %s", receipt.status);
-      if (receipt.status === 1) {
-        console.log("Сотрудник успешно удален из смарт-контракта");
-        const response = await axios.delete(
+      receipt = await tx.wait();
+    } catch (error) {
+      alert("Ограничение в смарт контракте");
+      console.error(
+        "Не удалось удалить сотрудника из смарт контракта: ",
+        error
+      );
+    }
+
+    if (receipt.status === 1) {
+      try {
+        await axios.delete(
           `http://localhost:3500/employees/delete?walletAddress=${editWalletAddress}`,
           data
         );
-
-        console.log(response.data);
         fetchEmployees();
-      } else {
-        console.log("Не удалось выполнить транзакцию на смарт-контракте");
+      } catch (error) {
+        alert("Ограничение в базе данных");
+        console.error("Не удалось удалить сотрудника из базы данных: ", error);
       }
-    } catch (err) {
-      console.error(
-        "Ошибка при выполнении транзакции на смарт-контракте: ",
-        err
-      );
+    } else {
+      console.log("Ошибка при выполнении транзакции на смарт-контракте");
     }
 
     setShowEditModal(false);
@@ -388,27 +358,27 @@ const App = () => {
   };
 
   const paySalaries = async () => {
-    console.log("Начинаем выплату зарплат");
+    let receipt;
     try {
       const tx = await contract.paySalary();
-      const receipt = await tx.wait();
-      if (receipt.status === 1) {
-        console.log("Зарплаты успешно выплачены");
-        alert("Зарплаты успешно выплачены");
+      receipt = await tx.wait();
+    } catch (error) {
+      alert("Ограничение в смарт контракте");
+      console.error("Не удалось выплатить зарплаты в смарт контракте: ", error);
+    }
 
+    if (receipt.status === 1) {
+      try {
         const currentDate = new Date();
         const year = currentDate.getFullYear();
         const month = ("0" + (currentDate.getMonth() + 1)).slice(-2);
         const day = ("0" + currentDate.getDate()).slice(-2);
-        const formattedDate = `${year}-${month}-${day}`;
-        console.log(formattedDate);
 
+        const formattedDate = `${year}-${month}-${day}`;
         const amount = calculateTotalPayout();
-        console.log(amount);
         const transactionHash = receipt.transactionHash;
-        console.log(receipt);
         const explorerLink = `https://mumbai.polygonscan.com/tx/${transactionHash}`;
-        console.log(explorerLink);
+
         const transactionData = {
           date: formattedDate,
           amount: amount,
@@ -425,15 +395,17 @@ const App = () => {
           };
           await axios.put("http://localhost:3500/employees/patch", data);
         }
+        alert("Зарплаты успешно выплачены");
         fetchEmployees();
-      } else {
-        console.log("Не удалось выполнить транзакцию на смарт-контракте");
+      } catch (error) {
+        alert("Ограничение в базе данных");
+        console.error(
+          "Не удалось обнулить Премии и Штрафы сотрудников или добавить транзакцию в базу данных: ",
+          error
+        );
       }
-    } catch (err) {
-      console.error(
-        "Ошибка при выполнении транзакции на смарт-контракте: ",
-        err
-      );
+    } else {
+      console.log("Ошибка при выполнении транзакции на смарт-контракте");
     }
   };
 
@@ -482,7 +454,11 @@ const App = () => {
 
       <h1 className="title">Зарплатный проект ИФ EMIVN</h1>
 
-      <button className="connect-button" onClick={createEmployee}>
+      <button
+        className="connect-button"
+        onClick={createEmployee}
+        style={{ textAlign: "center" }}
+      >
         Создать сотрудника
       </button>
 
@@ -522,7 +498,9 @@ const App = () => {
       {showTxsModal && (
         <div className="modal-overlay">
           <div className="modal">
-            <h2>Все выплаты сотрудникам</h2>
+            <h2 style={{ width: "400px", textAlign: "center" }}>
+              Все выплаты сотрудникам
+            </h2>
             <div>
               <table className="table">
                 <thead>
@@ -539,6 +517,8 @@ const App = () => {
                       <td>{transaction.amount}</td>
                       <td>
                         <button
+                          className="table-button"
+                          style={{ margin: "0" }}
                           onClick={() =>
                             window.open(transaction.hash, "_blank")
                           }
@@ -676,7 +656,8 @@ const App = () => {
       {showEditModal && (
         <div className="modal-overlay">
           <div className="modal">
-            <h2>Редактирование</h2>
+            <h2 style={{ textAlign: "center" }}>Редактирование</h2>
+            <p>Оставьте 0, если не хотите менять поле</p>
             <div className="employee-form">
               <div className="form-group">
                 <label className="label">Оклад</label>

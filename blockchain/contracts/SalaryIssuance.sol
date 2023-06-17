@@ -29,6 +29,11 @@ contract SalaryIssuance is AccessControl {
         _setupRole(DEFAULT_ADMIN_ROLE, _defaultAdmin);
     }
 
+    modifier existEmployeeNumber(uint256 _employeeNumber) {
+        require(_employeeNumber <= numberOfEmployees, "Employee number does not exist");
+        _;
+    }
+
     function addEmployee(
         address _wallet,
         uint256 _salary
@@ -47,8 +52,9 @@ contract SalaryIssuance is AccessControl {
 
     function deleteEmployee(
         uint256 _employeeNumber
-    ) external onlyRole(SALARY_ROLE) {
-        require(_employeeNumber <= numberOfEmployees, "Employee number does not exist");
+    ) external existEmployeeNumber(_employeeNumber) onlyRole(SALARY_ROLE) {
+        // require(_employeeNumber <= numberOfEmployees, "Employee number does not exist");
+        require(employees[_employeeNumber].wallet != address(0), "Employee already deleted");
         employees[_employeeNumber].wallet = address(0);
         employees[_employeeNumber].salary = 0;
         employees[_employeeNumber].bonus = 0;
@@ -67,37 +73,37 @@ contract SalaryIssuance is AccessControl {
 
     function checkEmployeeWallet(
         uint256 _employeeNumber
-    ) external view returns (address employeeWallet) {
-        require(_employeeNumber <= numberOfEmployees, "Employee number does not exist");
+    ) external view existEmployeeNumber(_employeeNumber) returns (address employeeWallet) {
+        // require(_employeeNumber <= numberOfEmployees, "Employee number does not exist");
         return employees[_employeeNumber].wallet;
     }
 
     function checkEmployeeSalary(
         uint256 _employeeNumber
-    ) external view returns (uint256 employeeSalary) {
-        require(_employeeNumber <= numberOfEmployees, "Employee number does not exist");
+    ) external view existEmployeeNumber(_employeeNumber) returns (uint256 employeeSalary) {
+        // require(_employeeNumber <= numberOfEmployees, "Employee number does not exist");
         return employees[_employeeNumber].salary;
     }
 
     function checkEmployeeBonus(
         uint256 _employeeNumber
-    ) external view returns (uint256 employeeBonus) {
-        require(_employeeNumber <= numberOfEmployees, "Employee number does not exist");
+    ) external view existEmployeeNumber(_employeeNumber) returns (uint256 employeeBonus) {
+        // require(_employeeNumber <= numberOfEmployees, "Employee number does not exist");
         return employees[_employeeNumber].bonus;
     }
 
     function checkEmployeePenalty(
         uint256 _employeeNumber
-    ) external view returns (uint256 employeePenalty) {
-        require(_employeeNumber <= numberOfEmployees, "Employee number does not exist");
+    ) external view existEmployeeNumber(_employeeNumber) returns (uint256 employeePenalty) {
+        // require(_employeeNumber <= numberOfEmployees, "Employee number does not exist");
         return employees[_employeeNumber].penalty;
     }
 
     function setEmployeeSalary(
         uint256 _employeeNumber,
         uint256 _salary
-    ) external onlyRole(SALARY_ROLE) {
-        require(_employeeNumber <= numberOfEmployees, "Employee number does not exist");
+    ) external existEmployeeNumber(_employeeNumber) onlyRole(SALARY_ROLE) {
+        // require(_employeeNumber <= numberOfEmployees, "Employee number does not exist");
         Employee memory employee = employees[_employeeNumber];
         if (
             employee.penalty > employee.bonus &&
@@ -112,16 +118,16 @@ contract SalaryIssuance is AccessControl {
     function setEmployeeBonus(
         uint256 _employeeNumber,
         uint256 _bonus
-    ) external onlyRole(SALARY_ROLE) {
-        require(_employeeNumber <= numberOfEmployees, "Employee number does not exist");
+    ) external existEmployeeNumber(_employeeNumber) onlyRole(SALARY_ROLE) {
+        // require(_employeeNumber <= numberOfEmployees, "Employee number does not exist");
         employees[_employeeNumber].bonus = _bonus;
     }
 
     function setEmployeePenalty(
         uint256 _employeeNumber,
         uint256 _penalty
-    ) external onlyRole(SALARY_ROLE) {
-        require(_employeeNumber <= numberOfEmployees, "Employee number does not exist");
+    ) external existEmployeeNumber(_employeeNumber) onlyRole(SALARY_ROLE) {
+        // require(_employeeNumber <= numberOfEmployees, "Employee number does not exist");
         uint256 checkProfit = employees[_employeeNumber].penalty + _penalty;
         require(
             employees[_employeeNumber].salary +
@@ -134,8 +140,8 @@ contract SalaryIssuance is AccessControl {
 
     function calculatePayoutAmount(
         uint256 _employeeNumber
-    ) public view returns (uint256) {
-        require(_employeeNumber <= numberOfEmployees, "Employee number does not exist");
+    ) public view existEmployeeNumber(_employeeNumber) returns (uint256) {
+        // require(_employeeNumber <= numberOfEmployees, "Employee number does not exist");
         Employee memory employee = employees[_employeeNumber];
         return employee.salary + employee.bonus - employee.penalty;
     }

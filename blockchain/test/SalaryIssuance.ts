@@ -115,6 +115,19 @@ describe("SalaryIssuance Test", () => {
     expect(employeeWallet1).to.equal(employee1.address);
     expect(employeeWallet2).to.equal(employee2.address);
     expect(employeeWallet3).to.equal(employee3.address);
+
+    await expect(SalaryIssuance.checkEmployeeWallet(10)).to.be.revertedWith(
+      "Employee number does not exist"
+    );
+    await expect(SalaryIssuance.checkEmployeeBonus(10)).to.be.revertedWith(
+      "Employee number does not exist"
+    );
+    await expect(SalaryIssuance.checkEmployeeSalary(10)).to.be.revertedWith(
+      "Employee number does not exist"
+    );
+    await expect(SalaryIssuance.checkEmployeePenalty(10)).to.be.revertedWith(
+      "Employee number does not exist"
+    );
   });
 
   it("Set and check salary, bonuses and penalties for employees", async () => {
@@ -149,6 +162,16 @@ describe("SalaryIssuance Test", () => {
     expect(updatedPenalty).to.equal(penaltyAmount);
     expect(updatedSalary).to.equal(newSalaryAmount);
     expect(updatedBonus).to.equal(bonusAmount);
+
+    await expect(SalaryIssuance.setEmployeeSalary(10, newSalaryAmount)).to.be.revertedWith(
+        "Employee number does not exist"
+      );
+      await expect(SalaryIssuance.setEmployeeBonus(10, newSalaryAmount)).to.be.revertedWith(
+        "Employee number does not exist"
+      );
+      await expect(SalaryIssuance.setEmployeePenalty(10, newSalaryAmount)).to.be.revertedWith(
+        "Employee number does not exist"
+      );
   });
 
   it("Check Access Control and unprofitable employees", async () => {
@@ -157,7 +180,7 @@ describe("SalaryIssuance Test", () => {
 
     await expect(
       SalaryIssuance.connect(employee1).setEmployeeSalary(
-        employee2.address,
+        1,
         smallAmount
       )
     ).to.be.revertedWith(
@@ -165,7 +188,7 @@ describe("SalaryIssuance Test", () => {
     );
     await expect(
       SalaryIssuance.connect(employee2).setEmployeeBonus(
-        employee3.address,
+        2,
         smallAmount
       )
     ).to.be.revertedWith(
@@ -173,7 +196,7 @@ describe("SalaryIssuance Test", () => {
     );
     await expect(
       SalaryIssuance.connect(employee3).setEmployeePenalty(
-        employee1.address,
+        1,
         smallAmount
       )
     ).to.be.revertedWith(
@@ -223,5 +246,22 @@ describe("SalaryIssuance Test", () => {
     );
     expect(await SalaryIssuance.checkEmployeePenalty(2)).to.equal(0);
     expect(await SalaryIssuance.checkEmployeeBonus(3)).to.equal(0);
+  });
+
+  it("Delete employee and pay salary", async () => {
+    await expect(
+      SalaryIssuance.connect(employee1).deleteEmployee(1)
+    ).to.be.revertedWith(
+      "AccessControl: account 0x70997970c51812dc3a010c7d01b50e0d17dc79c8 is missing role 0xd5275b184db1046809daf5623cc0eb88d19be67783a60d79936704ec82cfa491"
+    );
+    await SalaryIssuance.deleteEmployee(2);
+    await expect(SalaryIssuance.deleteEmployee(10)).to.be.revertedWith(
+      "Employee number does not exist"
+    );
+    await expect(SalaryIssuance.deleteEmployee(2)).to.be.revertedWith(
+      "Employee already deleted"
+    );
+
+    await SalaryIssuance.paySalary();
   });
 });

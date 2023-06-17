@@ -13,35 +13,43 @@ const DB_URL = `mongodb+srv://admin:${process.env.DB_PASSWORD}@salarycluster.mtp
 
 const app = express();
 
+// app.use((req, res, next) => {
+//   if (req.header("x-forwarded-proto") !== "https") {
+//     res.redirect(`https://${req.header("host")}${req.url}`);
+//   } else {
+//     next();
+//   }
+// });
+
 app.use(cors());
 app.use(express.json());
 
 // Транзакции
 app.get("/transactions", async (req, res) => {
-    try {
-      const transactions = await Transaction.find({});
-      res.json(transactions);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({
-        message: "Не удалось получить список транзакций",
-      });
-    }
-  });
-  
-  app.post("/transactions", async (req, res) => {
-    try {
-      const { date, amount, hash } = req.body;
-      const newTransaction = new Transaction({ date, amount, hash });
-      const transaction = await newTransaction.save();
-      res.json({ ...transaction._doc });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({
-        message: "Ошибка при создании транзакции",
-      });
-    }
-  });
+  try {
+    const transactions = await Transaction.find({});
+    res.json(transactions);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Не удалось получить список транзакций",
+    });
+  }
+});
+
+app.post("/transactions", async (req, res) => {
+  try {
+    const { date, amount, hash } = req.body;
+    const newTransaction = new Transaction({ date, amount, hash });
+    const transaction = await newTransaction.save();
+    res.json({ ...transaction._doc });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Ошибка при создании транзакции",
+    });
+  }
+});
 
 // Сотрудники
 app.get("/all", async (req, res) => {
@@ -64,9 +72,15 @@ app.post("/employees", employeeValidation, async (req, res) => {
     }
 
     const { fullName, walletAddress, salary } = req.body;
-    const bonus = 0
-    const penalty = 0
-    const newEmployee = new Employee({ fullName, walletAddress, salary, bonus, penalty });
+    const bonus = 0;
+    const penalty = 0;
+    const newEmployee = new Employee({
+      fullName,
+      walletAddress,
+      salary,
+      bonus,
+      penalty,
+    });
     const user = await newEmployee.save();
     res.json({ ...user._doc });
   } catch (error) {
@@ -125,7 +139,7 @@ app.delete("/employees/delete", async (req, res) => {
 async function startApp() {
   try {
     await mongoose.connect(DB_URL);
-    app.listen(PORT, () => console.log("Server is working on port " + PORT));
+    app.listen(PORT, () => console.log("Сервер работает на порту " + PORT));
   } catch (error) {
     console.log(error);
   }
