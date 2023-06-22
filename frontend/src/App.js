@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { ethers, BigNumber } from "ethers";
 import contractAbi from "./ABI/contractAbi.json";
-import ConnectButton from "./components/walletConnection/ConnectButton";
+import ConnectButton from "./walletConnection/ConnectButton";
 import { useWeb3React } from "@web3-react/core";
-import { getWalletType } from "./components/walletConnection/Helpers/StorageWallet";
-import { injected } from "./components/walletConnection/Connectors";
+import { getWalletType } from "./walletConnection/Helpers/StorageWallet";
+import { injected } from "./walletConnection/Connectors";
 import axios from "axios";
 import "./App.css";
 
