@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { ethers, BigNumber } from "ethers";
 import contractAbi from "./ABI/contractAbi.json";
+import tokenAbi from "./ABI/tokenAbi.json";
 import ConnectButton from "./walletConnection/ConnectButton";
 import { useWeb3React } from "@web3-react/core";
 import { getWalletType } from "./walletConnection/Helpers/StorageWallet";
@@ -14,10 +15,11 @@ const signer = provider.getSigner();
 const contract = new ethers.Contract(contractAddress, contractAbi, signer);
 
 const App = () => {
-  const [totalPayout, setTotalPayout] = useState(47);
+  const [totalPayout, setTotalPayout] = useState(0);
   const [employees, setEmployees] = useState([]);
   const [txs, setTxs] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [tokenCount, setTokenCount] = useState(0);
   const [error, setError] = useState("");
   const [editEmployeeIndex, setEditEmployeeIndex] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -41,6 +43,7 @@ const App = () => {
     connectWallet();
     activate();
     fetchEmployees();
+    checkBalance();
   }, []);
 
   React.useEffect(() => {
@@ -69,6 +72,26 @@ const App = () => {
     } catch (error) {
       console.error("Ошибка отображения сотрудников: ", error);
       alert("Ошибка отображения сотрудников");
+    }
+  };
+
+  const checkBalance = async () => {
+    try {
+      const tokenAddress = "0xB3861ba5414a3177F03C6cA12168B2016a556dfA";
+      const tokenContract = new ethers.Contract(
+        tokenAddress,
+        tokenAbi,
+        provider
+      );
+
+      const contractTokenBalance = (
+        await tokenContract.balanceOf(contractAddress)
+      ).toString();
+      const frontendBalance = contractTokenBalance / 10 ** 18;
+      setTokenCount(frontendBalance);
+    } catch (error) {
+      console.error("Ошибка отображения баланса смарт контракта: ", error);
+      alert("Ошибка отображения баланса смарт контракта");
     }
   };
 
@@ -477,8 +500,12 @@ const App = () => {
         <tbody>{renderTableRows()}</tbody>
       </table>
 
+      <div className="total-payout">Общая выплата в Emivn: {totalPayout}</div>
+      <div className="total-payout">
+        Сейчас токенов на контракте: {tokenCount}
+      </div>
+
       <div className="total-bottom">
-        <div className="total-payout">Общая выплата в Emivn: {totalPayout}</div>
         <button
           className="connect-button"
           onClick={paySalaries}
