@@ -87,6 +87,10 @@
   padding: 10px;
 }
 
+.lablelMobile {
+    display: none;
+  }
+
 .action-buttons button {
   margin-right: 5px;
 }
@@ -223,3 +227,47 @@
     max-width: none;
   }
 }
+
+@media screen and (max-width: 400px) {
+    .table-button {
+      margin-top: 0;
+    }
+  
+    .smallText {
+      font-size: 14px;
+    }
+  
+    .table td {
+      padding-bottom: 0;
+      padding-left: 0;
+    }
+  
+    .lablelMobile {
+      display: flex;
+      background: lightgray;
+      height: 30px;
+      font-weight: 500;
+      align-items: center;
+      margin-bottom: 4px;
+      padding-left: 8px;
+      width: 100%;
+    }
+  
+    .table tr {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 24px;
+    }
+  
+    .table thead {
+      display: none;
+    }
+  
+    .connect-button {
+      margin-right: 0 !important; 
+    }
+  
+    .total-payout {
+      margin-left: 0;
+    }
+  }

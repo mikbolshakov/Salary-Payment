@@ -435,12 +435,56 @@ const App = () => {
   const renderTableRows = () => {
     return employees.map((employee, index) => (
       <tr key={index}>
-        <td>{employee.fullName}</td>
+        {/* <td>{employee.fullName}</td>
         <td>{employee.walletAddress}</td>
         <td>{employee.salary}</td>
         <td>{employee.bonus}</td>
         <td>{employee.penalty}</td>
-        <td>{employee.salary + employee.bonus - employee.penalty}</td>
+        <td>{employee.salary + employee.bonus - employee.penalty}</td> */}
+        <td>
+          <span className="lablelMobile">
+            Сотрудник
+          </span>
+          <span>
+            {employee.fullName}
+          </span>
+        </td>
+        <td>
+          <span className="lablelMobile">
+            Кошелек
+          </span>
+          <span className="smallText">
+            {employee.walletAddress}
+          </span>
+        </td>
+        <td>
+          <span className="lablelMobile">
+            Оклад
+          </span>
+          <span>
+            {employee.salary}
+          </span>
+        </td>
+        <td>
+          <span className="lablelMobile">
+            Премия
+          </span>
+          <span>
+            {employee.bonus}
+          </span>
+        </td>
+        <td>
+          <span className="lablelMobile">
+            Штрафы
+          </span>
+          {employee.penalty}
+        </td>
+        <td>
+          <span className="lablelMobile">
+            Выплата
+          </span>
+          {employee.salary + employee.bonus - employee.penalty}
+        </td>
         <td>
           <button
             className="table-button"

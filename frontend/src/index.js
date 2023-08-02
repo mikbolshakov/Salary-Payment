@@ -8,6 +8,9 @@ import { ethers } from "ethers";
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
 const getLibrary = (provider) => {
+    if(!provider){
+        return
+    }
   console.log("test");
   const library = new ethers.providers.Web3Provider(provider);
   library.pollingInterval = 15000;
