@@ -1,4 +1,5 @@
 import { ethers } from "hardhat";
+import hre from "hardhat";
 import "hardhat-deploy";
 import "hardhat-deploy-ethers";
 
@@ -13,6 +14,14 @@ async function main() {
   await salaryIssuance.deployed();
 
   console.log(`Staking deployed to ${salaryIssuance.address}`);
+
+  await new Promise((resolve) => setTimeout(resolve, 60000));
+
+  await hre.run("verify:verify", {
+    address: salaryIssuance.address,
+    constructorArguments: [salaryToken, defaultAdmin],
+    contract: "contracts/SalaryIssuance.sol:SalaryIssuance",
+  });
 }
 
 main().catch((error) => {

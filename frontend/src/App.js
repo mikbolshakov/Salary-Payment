@@ -1,15 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ethers, BigNumber } from "ethers";
 import contractAbi from "./ABI/contractAbi.json";
 import tokenAbi from "./ABI/tokenAbi.json";
-import ConnectButton from "./walletConnection/ConnectButton";
-import { useWeb3React } from "@web3-react/core";
-import { getWalletType } from "./walletConnection/Helpers/StorageWallet";
-import { injected } from "./walletConnection/Connectors";
+import WalletConnect from "./components/WalletConnect";
 import axios from "axios";
 import "./App.css";
 
-const contractAddress = "0x105B63C411598Df46F86D87af283054AA1eBBb9F";
+const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS;
 const provider = new ethers.providers.Web3Provider(window.ethereum);
 const signer = provider.getSigner();
 const contract = new ethers.Contract(contractAddress, contractAbi, signer);
@@ -21,6 +18,8 @@ const App = () => {
   const [showModal, setShowModal] = useState(false);
   const [tokenCount, setTokenCount] = useState(0);
   const [error, setError] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchWalletQuery, setSearchWalletQuery] = useState("");
   const [editEmployeeIndex, setEditEmployeeIndex] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showTxsModal, setShowTxsModal] = useState(false);
@@ -39,29 +38,24 @@ const App = () => {
     salary: false,
   });
 
-  React.useEffect(() => {
-    connectWallet();
-    activate();
+  useEffect(() => {
     fetchEmployees();
     checkBalance();
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     calculateTotalPayout();
   }, [employees]);
 
-  const { activate } = useWeb3React();
-  const connectWallet = async () => {
-    if (window.ethereum) {
-      const walletType = getWalletType();
-
-      if (walletType) {
-        try {
-          await activate(injected);
-        } catch (e) {
-          console.log(e.message);
-        }
-      }
+  const checkBalance = async () => {
+    try {
+      const address = process.env.REACT_APP_TOKEN_ADDRESS;
+      const contract = new ethers.Contract(address, tokenAbi, provider);
+      const balance = await contract.balanceOf(contractAddress);
+      setTokenCount(balance.toString() / 10 ** 18);
+    } catch (error) {
+      console.error("Smart contract balance display error: ", error);
+      alert("Smart contract balance display error");
     }
   };
 
@@ -70,28 +64,8 @@ const App = () => {
       const response = await axios.get("http://localhost:3500/all");
       setEmployees(response.data);
     } catch (error) {
-      console.error("Ошибка отображения сотрудников: ", error);
-      alert("Ошибка отображения сотрудников");
-    }
-  };
-
-  const checkBalance = async () => {
-    try {
-      const tokenAddress = "0xB3861ba5414a3177F03C6cA12168B2016a556dfA";
-      const tokenContract = new ethers.Contract(
-        tokenAddress,
-        tokenAbi,
-        provider
-      );
-
-      const contractTokenBalance = (
-        await tokenContract.balanceOf(contractAddress)
-      ).toString();
-      const frontendBalance = contractTokenBalance / 10 ** 18;
-      setTokenCount(frontendBalance);
-    } catch (error) {
-      console.error("Ошибка отображения баланса смарт контракта: ", error);
-      alert("Ошибка отображения баланса смарт контракта");
+      console.error("Employee display error: ", error);
+      alert("Employee display error");
     }
   };
 
@@ -134,21 +108,21 @@ const App = () => {
         setError("");
         setEditSalary(value);
       } else {
-        setError("Оклад должен быть числом");
+        setError("Salary must be a number");
       }
     } else if (name === "editBonus") {
       if (!isNaN(Number(value))) {
         setError("");
         setEditBonus(value);
       } else {
-        setError("Бонус должен быть числом");
+        setError("Bonus must be a number");
       }
     } else if (name === "editPenalty") {
       if (!isNaN(Number(value))) {
         setError("");
         setEditPenalty(value);
       } else {
-        setError("Штраф должен быть числом");
+        setError("Penalty must be a number");
       }
     }
   };
@@ -170,38 +144,18 @@ const App = () => {
   };
 
   const validateForm = () => {
-    if (newEmployee.fullName === "") {
-      setError("Введите ФИО сотрудника");
-      return false;
-    }
-    if (
-      employees.some((employee) => employee.fullName === newEmployee.fullName)
-    ) {
-      setError("Такой сотрудник уже работает");
-      return false;
-    }
-    if (newEmployee.walletAddress === "") {
-      setError("Введите адрес кошелька сотрудника");
-      return false;
-    }
-    if (
-      !newEmployee.walletAddress.startsWith("0x") ||
-      newEmployee.walletAddress.length !== 42
-    ) {
+    const { fullName, walletAddress, salary } = newEmployee;
+    if (!fullName) setError("Enter the name of the employee");
+    else if (employees.some((employee) => employee.fullName === fullName))
+      setError("Such an employee is already working");
+    else if (!walletAddress.startsWith("0x") || walletAddress.length !== 42)
       setError(
-        'Адрес кошелька должен начинаться с "0x" и иметь длину 42 символа'
+        'The wallet address must start with "0x" and be 42 characters long'
       );
-      return false;
-    }
-    if (newEmployee.salary === "") {
-      setError("Введите оклад сотрудника");
-      return false;
-    }
-    if (isNaN(Number(newEmployee.salary))) {
-      setError("Оклад должен быть числом");
-      return false;
-    }
-    return true;
+    else if (!salary || isNaN(Number(salary)))
+      setError("Salary must be a number");
+    else return true;
+    return false;
   };
 
   const addEmployee = async (e) => {
@@ -218,11 +172,8 @@ const App = () => {
         );
         receipt = await tx.wait();
       } catch (error) {
-        alert("Ограничение в смарт контракте");
-        console.error(
-          "Не удалось добавить сотрудника в смарт контракт: ",
-          error
-        );
+        alert("Limitation in a smart contract");
+        console.error("Failed to add employee to smart contract: ", error);
       }
 
       if (receipt.status === 1) {
@@ -235,14 +186,11 @@ const App = () => {
           fetchEmployees();
           handleModalClose();
         } catch (error) {
-          alert("Ограничение в базе данных");
-          console.error(
-            "Не удалось добавить сотрудника в базу данных: ",
-            error
-          );
+          alert("Limitation in a database");
+          console.error("Failed to add employee to database: ", error);
         }
       } else {
-        console.log("Ошибка при выполнении транзакции на смарт-контракте");
+        console.log("Error when executing a transaction on a smart contract");
       }
     }
   };
@@ -263,7 +211,6 @@ const App = () => {
       const employeeNumber = await contract.checkEmployeeNumber(
         editWalletAddress
       );
-      console.log(`Номер сотрудника: ${employeeNumber}`);
       if (editSalary !== 0) {
         const salaryData = {
           walletAddress: editWalletAddress,
@@ -275,10 +222,10 @@ const App = () => {
         const receiptSalary = await txSalary.wait();
         salaryData.salary = editSalary;
         await axios.put("http://localhost:3500/employees/patch", salaryData);
-        console.log("Оклад поменяли");
+        console.log("Salary changed");
 
         if (receiptSalary.status !== 1)
-          console.log("Не удалось обновить оклад сотрудника");
+          console.log("Failed to update employee salary");
       }
 
       if (editBonus !== 0) {
@@ -293,9 +240,9 @@ const App = () => {
         const receiptBonus = await txBonus.wait();
         bonusData.bonus = editBonus;
         await axios.put("http://localhost:3500/employees/patch", bonusData);
-        console.log("Премию поменяли");
+        console.log("Bonus changed");
         if (receiptBonus.status !== 1)
-          console.log("Не удалось обновить премию сотрудника");
+          console.log("Failed to update employee bonus");
       }
 
       if (editPenalty !== 0) {
@@ -310,15 +257,15 @@ const App = () => {
         const receiptPenalty = await txPenalty.wait();
         penaltyData.penalty = editPenalty;
         await axios.put("http://localhost:3500/employees/patch", penaltyData);
-        console.log("Штрафы поменяли");
+        console.log("Penalty changed");
         if (receiptPenalty.status !== 1)
-          console.log("Не удалось обновить штрафы сотрудника");
+          console.log("Failed to update employee penalty");
       }
       fetchEmployees();
     } catch (error) {
-      console.error("Редактирование не завершено: ", error);
+      console.error("Editing not completed: ", error);
       fetchEmployees();
-      alert("Редактирование не завершено");
+      alert("Editing not completed");
     }
 
     const editedEmployee = {
@@ -345,15 +292,11 @@ const App = () => {
       const employeeNumber = await contract.checkEmployeeNumber(
         editWalletAddress.toString()
       );
-      console.log(`Номер сотрудника: ${employeeNumber}`);
       const tx = await contract.deleteEmployee(employeeNumber);
       receipt = await tx.wait();
     } catch (error) {
-      alert("Ограничение в смарт контракте");
-      console.error(
-        "Не удалось удалить сотрудника из смарт контракта: ",
-        error
-      );
+      alert("Limitation in a smart contract");
+      console.error("Failed to remove employee from smart contract: ", error);
     }
 
     if (receipt.status === 1) {
@@ -364,11 +307,11 @@ const App = () => {
         );
         fetchEmployees();
       } catch (error) {
-        alert("Ограничение в базе данных");
-        console.error("Не удалось удалить сотрудника из базы данных: ", error);
+        alert("Limitation in a database");
+        console.error("Failed to remove employee from database: ", error);
       }
     } else {
-      console.log("Ошибка при выполнении транзакции на смарт-контракте");
+      console.log("Error when executing a transaction on a smart contract");
     }
 
     setShowEditModal(false);
@@ -386,8 +329,8 @@ const App = () => {
       const tx = await contract.paySalary();
       receipt = await tx.wait();
     } catch (error) {
-      alert("Ограничение в смарт контракте");
-      console.error("Не удалось выплатить зарплаты в смарт контракте: ", error);
+      alert("Limitation in a smart contract");
+      console.error("Failed to pay salaries in smart contract: ", error);
     }
 
     if (receipt.status === 1) {
@@ -418,83 +361,65 @@ const App = () => {
           };
           await axios.put("http://localhost:3500/employees/patch", data);
         }
-        alert("Зарплаты успешно выплачены");
+        alert("Salaries paid successfully");
         fetchEmployees();
       } catch (error) {
-        alert("Ограничение в базе данных");
+        alert("Limitation in a database");
         console.error(
-          "Не удалось обнулить Премии и Штрафы сотрудников или добавить транзакцию в базу данных: ",
+          "Failed to reset Bonuses and Penalties of employees or add a transaction to the database: ",
           error
         );
       }
     } else {
-      console.log("Ошибка при выполнении транзакции на смарт-контракте");
+      console.log("Error when executing a transaction on a smart contract");
     }
   };
 
   const renderTableRows = () => {
-    return employees.map((employee, index) => (
-      <tr key={index}>
-        {/* <td>{employee.fullName}</td>
-        <td>{employee.walletAddress}</td>
-        <td>{employee.salary}</td>
-        <td>{employee.bonus}</td>
-        <td>{employee.penalty}</td>
-        <td>{employee.salary + employee.bonus - employee.penalty}</td> */}
-        <td>
-          <span className="lablelMobile">
-            Сотрудник
-          </span>
-          <span>
-            {employee.fullName}
-          </span>
-        </td>
-        <td>
-          <span className="lablelMobile">
-            Кошелек
-          </span>
-          <span className="smallText">
-            {employee.walletAddress}
-          </span>
-        </td>
-        <td>
-          <span className="lablelMobile">
-            Оклад
-          </span>
-          <span>
-            {employee.salary}
-          </span>
-        </td>
-        <td>
-          <span className="lablelMobile">
-            Премия
-          </span>
-          <span>
-            {employee.bonus}
-          </span>
-        </td>
-        <td>
-          <span className="lablelMobile">
-            Штрафы
-          </span>
-          {employee.penalty}
-        </td>
-        <td>
-          <span className="lablelMobile">
-            Выплата
-          </span>
-          {employee.salary + employee.bonus - employee.penalty}
-        </td>
-        <td>
-          <button
-            className="table-button"
-            onClick={() => openEditModal(employee.walletAddress)}
-          >
-            Изменить
-          </button>
-        </td>
-      </tr>
-    ));
+    return employees
+      .filter(
+        (employee) =>
+          employee.fullName.toLowerCase().includes(searchQuery.toLowerCase()) &&
+          employee.walletAddress
+            .toLowerCase()
+            .includes(searchWalletQuery.toLowerCase())
+      )
+      .map((employee, index) => (
+        <tr key={index}>
+          <td>
+            <span className="lablelMobile">Employee</span>
+            <span>{employee.fullName}</span>
+          </td>
+          <td>
+            <span className="lablelMobile">Wallet</span>
+            <span className="smallText">{employee.walletAddress}</span>
+          </td>
+          <td>
+            <span className="lablelMobile">Salary</span>
+            <span>{employee.salary}</span>
+          </td>
+          <td>
+            <span className="lablelMobile">Bonus</span>
+            <span>{employee.bonus}</span>
+          </td>
+          <td>
+            <span className="lablelMobile">Penalty</span>
+            {employee.penalty}
+          </td>
+          <td>
+            <span className="lablelMobile">Payment</span>
+            {employee.salary + employee.bonus - employee.penalty}
+          </td>
+          <td>
+            <button
+              className="table-button"
+              onClick={() => openEditModal(employee.walletAddress)}
+            >
+              Edit
+            </button>
+          </td>
+        </tr>
+      ));
   };
 
   const renderTableTxsRows = async () => {
@@ -517,37 +442,55 @@ const App = () => {
 
   return (
     <div className="container">
-      <ConnectButton />
+      <WalletConnect />
 
-      <h1 className="title">Зарплатный проект ИФ EMIVN</h1>
+      <h1 className="title">Wage Payment Project</h1>
 
       <button
         className="connect-button"
         onClick={createEmployee}
         style={{ textAlign: "center" }}
       >
-        Создать сотрудника
+        Add employee
       </button>
+
+      <div className="search-container">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search by employee name"
+          className="search-input"
+        />
+      </div>
+
+      <div className="search-container">
+        <input
+          type="text"
+          value={searchWalletQuery}
+          onChange={(e) => setSearchWalletQuery(e.target.value)}
+          placeholder="Search by employee wallet"
+          className="search-input"
+        />
+      </div>
 
       <table className="table">
         <thead>
           <tr>
-            <th>Сотрудник</th>
-            <th>Кошелек</th>
-            <th>Оклад</th>
-            <th>Премия</th>
-            <th>Штрафы</th>
-            <th>Выплата</th>
-            <th>Действия</th>
+            <th>Employee</th>
+            <th>Wallet</th>
+            <th>Salary</th>
+            <th>Bonus</th>
+            <th>Penalty</th>
+            <th>Payment</th>
+            <th>Edit</th>
           </tr>
         </thead>
         <tbody>{renderTableRows()}</tbody>
       </table>
 
-      <div className="total-payout">Общая выплата в Emivn: {totalPayout}</div>
-      <div className="total-payout">
-        Сейчас токенов на контракте: {tokenCount}
-      </div>
+      <div className="total-payout">Total payout: {totalPayout}</div>
+      <div className="total-payout">Contract balance: {tokenCount}</div>
 
       <div className="total-bottom">
         <button
@@ -555,7 +498,7 @@ const App = () => {
           onClick={paySalaries}
           style={{ marginRight: "60px", backgroundColor: "green" }}
         >
-          Выплатить всем
+          Pay out to everyone
         </button>
 
         <button
@@ -563,22 +506,22 @@ const App = () => {
           onClick={checkAllTxs}
           style={{ marginRight: "60px" }}
         >
-          Все выплаты
+          All payments
         </button>
       </div>
       {showTxsModal && (
         <div className="modal-overlay">
           <div className="modal">
             <h2 style={{ width: "400px", textAlign: "center" }}>
-              Все выплаты сотрудникам
+              All employee payments
             </h2>
             <div>
               <table className="table">
                 <thead>
                   <tr>
-                    <th>Дата</th>
-                    <th>Сумма</th>
-                    <th>Ссылка</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Link</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -594,7 +537,7 @@ const App = () => {
                             window.open(transaction.hash, "_blank")
                           }
                         >
-                          Перейти
+                          Follow
                         </button>
                       </td>
                     </tr>
@@ -605,7 +548,7 @@ const App = () => {
                 className="close-modal-button"
                 onClick={handleTxsModalClose}
               >
-                Закрыть
+                Close
               </button>
             </div>
           </div>
@@ -615,7 +558,7 @@ const App = () => {
       {showModal && (
         <div className="modal-overlay">
           <div className="modal">
-            <h2>Добавление сотрудника</h2>
+            <h2>Add employee</h2>
             <div className="employee-form">
               <div className="form-group">
                 <input
@@ -642,7 +585,7 @@ const App = () => {
                 >
                   {fieldFocused.fullName || newEmployee.fullName !== ""
                     ? ""
-                    : "ФИО"}
+                    : "Name"}
                 </label>
               </div>
 
@@ -674,7 +617,7 @@ const App = () => {
                   {fieldFocused.walletAddress ||
                   newEmployee.walletAddress !== ""
                     ? ""
-                    : "Адрес кошелька"}
+                    : "Wallet address"}
                 </label>
               </div>
 
@@ -703,20 +646,20 @@ const App = () => {
                 >
                   {fieldFocused.salary || newEmployee.salary !== ""
                     ? ""
-                    : "Оклад"}
+                    : "Salary"}
                 </label>
               </div>
 
               {error && <p className="error">{error}</p>}
               <div className="button-group">
                 <button className="add-employee-button" onClick={addEmployee}>
-                  Добавить сотрудника
+                  Add employee
                 </button>
                 <button
                   className="close-modal-button"
                   onClick={handleModalClose}
                 >
-                  Закрыть
+                  Close
                 </button>
               </div>
             </div>
@@ -727,11 +670,11 @@ const App = () => {
       {showEditModal && (
         <div className="modal-overlay">
           <div className="modal">
-            <h2 style={{ textAlign: "center" }}>Редактирование</h2>
-            <p>Оставьте 0, если не хотите менять поле</p>
+            <h2 style={{ textAlign: "center" }}>Editing</h2>
+            <p>Leave 0 if you don't want to change the field</p>
             <div className="employee-form">
               <div className="form-group">
-                <label className="label">Оклад</label>
+                <label className="label">Salary</label>
                 <input
                   type="text"
                   id="editSalary"
@@ -759,7 +702,7 @@ const App = () => {
               </div>
 
               <div className="form-group">
-                <label>Премия</label>
+                <label>Bonus</label>
                 <input
                   type="text"
                   id="editBonus"
@@ -784,12 +727,12 @@ const App = () => {
                 >
                   {fieldFocused.bonus || newEmployee.bonus !== ""
                     ? ""
-                    : "Премия"}
+                    : "Bonus"}
                 </label>
               </div>
 
               <div className="form-group">
-                <label>Штрафы</label>
+                <label>Penalty</label>
                 <input
                   type="text"
                   id="editPenalty"
@@ -814,21 +757,21 @@ const App = () => {
                 >
                   {fieldFocused.penalty || newEmployee.penalty !== ""
                     ? ""
-                    : "Штраф"}
+                    : "Penalty"}
                 </label>
               </div>
 
               {error && <p className="error">{error}</p>}
               <div className="button-group">
                 <button className="add-employee-button" onClick={saveChanges}>
-                  Сохранить изменения
+                  Save changes
                 </button>
                 <button
                   className="add-employee-button"
                   onClick={deleteTheEmployee}
                   style={{ backgroundColor: "red" }}
                 >
-                  Удалить сотрудника
+                  Delete employee
                 </button>
               </div>
               <button
@@ -836,7 +779,7 @@ const App = () => {
                 onClick={handleModalClose}
                 style={{ margin: "auto", marginTop: "10px" }}
               >
-                Закрыть
+                Close
               </button>
             </div>
           </div>

@@ -13,18 +13,10 @@ const DB_URL = `mongodb+srv://admin:${process.env.DB_PASSWORD}@salarycluster.mtp
 
 const app = express();
 
-// app.use((req, res, next) => {
-//   if (req.header("x-forwarded-proto") !== "https") {
-//     res.redirect(`https://${req.header("host")}${req.url}`);
-//   } else {
-//     next();
-//   }
-// });
-
 app.use(cors());
 app.use(express.json());
 
-// Транзакции
+// Transactions
 app.get("/transactions", async (req, res) => {
   try {
     const transactions = await Transaction.find({});
@@ -32,7 +24,7 @@ app.get("/transactions", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({
-      message: "Не удалось получить список транзакций",
+      message: "Error to get list of transactions",
     });
   }
 });
@@ -46,12 +38,12 @@ app.post("/transactions", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({
-      message: "Ошибка при создании транзакции",
+      message: "Error creating transaction",
     });
   }
 });
 
-// Сотрудники
+// Employees
 app.get("/all", async (req, res) => {
   try {
     const employees = await Employee.find({});
@@ -59,7 +51,7 @@ app.get("/all", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({
-      message: "Не удалось получить список сотрудников",
+      message: "Error to get list of employees",
     });
   }
 });
@@ -86,7 +78,7 @@ app.post("/employees", employeeValidation, async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({
-      message: "Ошибка при создании сотрудника",
+      message: "Error creating employee",
     });
   }
 });
@@ -101,7 +93,7 @@ app.put("/employees/patch", async (req, res) => {
 
     if (!updatedEmployee) {
       return res.status(404).json({
-        message: "Сотрудник не найден",
+        message: "Employee not found",
       });
     }
 
@@ -109,7 +101,7 @@ app.put("/employees/patch", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({
-      message: "Ошибка при обновлении данных сотрудника",
+      message: "Error updating employee data",
     });
   }
 });
@@ -121,17 +113,17 @@ app.delete("/employees/delete", async (req, res) => {
 
     if (!deletedEmployee) {
       return res.status(404).json({
-        message: "Сотрудник не найден",
+        message: "Employee not found",
       });
     }
 
     res.json({
-      message: "Сотрудник успешно удален",
+      message: "Employee successfully deleted",
     });
   } catch (error) {
     console.error(error);
     res.status(500).json({
-      message: "Ошибка при удалении сотрудника",
+      message: "Error when deleting an employee",
     });
   }
 });
@@ -139,7 +131,9 @@ app.delete("/employees/delete", async (req, res) => {
 async function startApp() {
   try {
     await mongoose.connect(DB_URL);
-    app.listen(PORT, () => console.log("Сервер работает на порту " + PORT));
+    app.listen(PORT, () =>
+      console.log("The server is running on a port " + PORT)
+    );
   } catch (error) {
     console.log(error);
   }

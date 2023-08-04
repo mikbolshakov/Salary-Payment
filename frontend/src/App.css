@@ -88,8 +88,8 @@
 }
 
 .lablelMobile {
-    display: none;
-  }
+  display: none;
+}
 
 .action-buttons button {
   margin-right: 5px;
@@ -199,7 +199,22 @@
   background-color: #999;
 }
 
-/* Медиа-запросы */
+.search-container {
+  margin-bottom: 10px;
+  display: inline-block;
+}
+
+.search-input {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+  width: 300px;
+  max-width: 100%;
+  margin-left: 10px;
+}
+
+/* media screen */
 @media screen and (max-width: 768px) {
   .container {
     padding: 10px;
@@ -229,45 +244,45 @@
 }
 
 @media screen and (max-width: 400px) {
-    .table-button {
-      margin-top: 0;
-    }
-  
-    .smallText {
-      font-size: 14px;
-    }
-  
-    .table td {
-      padding-bottom: 0;
-      padding-left: 0;
-    }
-  
-    .lablelMobile {
-      display: flex;
-      background: lightgray;
-      height: 30px;
-      font-weight: 500;
-      align-items: center;
-      margin-bottom: 4px;
-      padding-left: 8px;
-      width: 100%;
-    }
-  
-    .table tr {
-      display: flex;
-      flex-direction: column;
-      margin-bottom: 24px;
-    }
-  
-    .table thead {
-      display: none;
-    }
-  
-    .connect-button {
-      margin-right: 0 !important; 
-    }
-  
-    .total-payout {
-      margin-left: 0;
-    }
+  .table-button {
+    margin-top: 0;
   }
+
+  .smallText {
+    font-size: 14px;
+  }
+
+  .table td {
+    padding-bottom: 0;
+    padding-left: 0;
+  }
+
+  .lablelMobile {
+    display: flex;
+    background: lightgray;
+    height: 30px;
+    font-weight: 500;
+    align-items: center;
+    margin-bottom: 4px;
+    padding-left: 8px;
+    width: 100%;
+  }
+
+  .table tr {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 24px;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .connect-button {
+    margin-right: 0 !important;
+  }
+
+  .total-payout {
+    margin-left: 0;
+  }
+}

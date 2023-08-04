@@ -21,6 +21,7 @@ contract SalaryIssuance is AccessControl {
     constructor(address _salaryToken, address _defaultAdmin) {
         salaryToken = ERC20(_salaryToken);
         _setupRole(DEFAULT_ADMIN_ROLE, _defaultAdmin);
+        _setupRole(SALARY_ROLE, _defaultAdmin);
     }
 
     modifier existEmployeeNumber(uint256 _employeeNumber) {
