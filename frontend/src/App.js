@@ -1,5 +1,6 @@
 import Header from './pages/header/Header';
 import EmployeeList from "./pages/spreadsheet/EmployeeList"
+import Footer from './pages/footer/Footer';
 import './App.css';
 
 function App() {
@@ -7,6 +8,7 @@ function App() {
     <div className="App">
       <Header />
       <EmployeeList />
+      <Footer/>
     </div>
   );
 }
