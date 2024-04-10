@@ -1,14 +1,11 @@
 import Header from './pages/header/Header';
-import EmployeeList from "./pages/spreadsheet/EmployeeList"
-import Footer from './pages/footer/Footer';
-import './App.css';
+import Spreadsheet from "./pages/employeeList/EmployeeList"
 
 function App() {
   return (
     <div className="App">
       <Header />
-      <EmployeeList />
-      <Footer/>
+      <Spreadsheet />
     </div>
   );
 }

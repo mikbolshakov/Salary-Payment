@@ -1,14 +1,17 @@
-import './EmployeeList.css';
 import { useEffect, useState } from 'react';
+import { BrowserProvider, Contract } from 'ethers';
+import tokenAbi from '../../ABI/tokenAbi.json';
 import axios from 'axios';
+import './EmployeeList.css';
 
 const EmployeeList = () => {
   const [employees, setEmployees] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchWalletQuery, setSearchWalletQuery] = useState('');
   const [editEmployeeIndex, setEditEmployeeIndex] = useState(null);
+  const [smartContractBalance, setSmartContractBalance] =
+    useState('Loading...');
   const [showEditModal, setShowEditModal] = useState(false);
   const [editWalletAddress, setEditWalletAddress] = useState('');
   const [editSalary, setEditSalary] = useState('');
@@ -27,6 +30,7 @@ const EmployeeList = () => {
 
   useEffect(() => {
     fetchEmployees();
+    checkBalance();
   }, []);
 
   const fetchEmployees = async () => {
@@ -54,7 +58,6 @@ const EmployeeList = () => {
       walletAddress: false,
       salary: false,
     });
-    setError('');
   };
 
   const handleInputChange = (e) => {
@@ -69,24 +72,21 @@ const EmployeeList = () => {
     const { name, value } = e.target;
     if (name === 'editSalary') {
       if (!isNaN(Number(value))) {
-        setError('');
         setEditSalary(value);
       } else {
-        setError('Salary must be a number');
+        alert('Salary must be a number');
       }
     } else if (name === 'editBonus') {
       if (!isNaN(Number(value))) {
-        setError('');
         setEditBonus(value);
       } else {
-        setError('Bonus must be a number');
+        alert('Bonus must be a number');
       }
     } else if (name === 'editPenalty') {
       if (!isNaN(Number(value))) {
-        setError('');
         setEditPenalty(value);
       } else {
-        setError('Penalty must be a number');
+        alert('Penalty must be a number');
       }
     }
   };
@@ -107,53 +107,6 @@ const EmployeeList = () => {
     }
   };
 
-  const renderTableRows = () => {
-    return employees
-      .filter(
-        (employee) =>
-          employee.full_name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-          employee.wallet_address
-            .toLowerCase()
-            .includes(searchWalletQuery.toLowerCase()),
-      )
-      .map((employee, index) => (
-        <tr key={index}>
-          <td>
-            <span className="lablelMobile">Employee</span>
-            <span>{employee.full_name}</span>
-          </td>
-          <td>
-            <span className="lablelMobile">Wallet</span>
-            <span className="smallText">{employee.wallet_address}</span>
-          </td>
-          <td>
-            <span className="lablelMobile">Salary</span>
-            <span>{employee.salary}</span>
-          </td>
-          <td>
-            <span className="lablelMobile">Bonus</span>
-            <span>{employee.bonus}</span>
-          </td>
-          <td>
-            <span className="lablelMobile">Penalty</span>
-            {employee.penalty}
-          </td>
-          <td>
-            <span className="lablelMobile">Payment</span>
-            {employee.salary + employee.bonus - employee.penalty}
-          </td>
-          <td>
-            <button
-              className="table-button"
-              onClick={() => openEditModal(employee.walletAddress)}
-            >
-              Edit
-            </button>
-          </td>
-        </tr>
-      ));
-  };
-
   const openEditModal = (walletAddress) => {
     const employee = employees.find(
       (emp) => emp.walletAddress === walletAddress,
@@ -163,6 +116,27 @@ const EmployeeList = () => {
     setEditPenalty(0);
     setEditWalletAddress(walletAddress);
     setShowEditModal(true);
+  };
+
+  const checkBalance = async () => {
+    try {
+      const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS;
+      const provider = new BrowserProvider(`${process.env.REACT_APP_PROVIDER}`);
+
+      const tokenAddress = process.env.REACT_APP_TOKEN_ADDRESS;
+      const tokenContract = new Contract(tokenAddress, tokenAbi, provider);
+
+      const contractTokenBalance = (
+        await tokenContract.balanceOf(contractAddress)
+      ).toString();
+      const frontendBalance = contractTokenBalance / 10 ** 18;
+      setSmartContractBalance(
+        frontendBalance + ` ${process.env.REACT_APP_TOKEN_TIKER}`,
+      );
+    } catch (error) {
+      console.error('Smart contract balance display error: ', error);
+      setSmartContractBalance('Error');
+    }
   };
 
   const deleteTheEmployee = async () => {
@@ -237,9 +211,77 @@ const EmployeeList = () => {
     handleModalClose();
   };
 
+  const renderTableRows = () => {
+    return employees
+      .filter(
+        (employee) =>
+          employee.full_name
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) &&
+          employee.wallet_address
+            .toLowerCase()
+            .includes(searchWalletQuery.toLowerCase()),
+      )
+      .map((employee, index) => (
+        <tr key={index}>
+          <td>
+            <span className="lablelMobile">Employee</span>
+            <span>{employee.full_name}</span>
+          </td>
+          <td>
+            <span className="lablelMobile">Wallet</span>
+            <span className="smallText">{employee.wallet_address}</span>
+          </td>
+          <td>
+            <span className="lablelMobile">Salary</span>
+            <span>{employee.salary}</span>
+          </td>
+          <td>
+            <span className="lablelMobile">Bonus</span>
+            <span>{employee.bonus}</span>
+          </td>
+          <td>
+            <span className="lablelMobile">Penalty</span>
+            {employee.penalty}
+          </td>
+          <td>
+            <span className="lablelMobile">Payment</span>
+            {employee.salary + employee.bonus - employee.penalty}
+          </td>
+          <td>
+            <button
+              className="list-table-button"
+              onClick={() => openEditModal(employee.walletAddress)}
+            >
+              Edit
+            </button>
+          </td>
+        </tr>
+      ));
+  };
+
   return (
-    <div className="container">
-      <table className="table">
+    <div>
+      <div className="list-search-container">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search by employee name"
+          className="list-search-input"
+        />
+      </div>
+
+      <div className="list-search-container">
+        <input
+          type="text"
+          value={searchWalletQuery}
+          onChange={(e) => setSearchWalletQuery(e.target.value)}
+          placeholder="Search by wallets"
+          className="list-search-input"
+        />
+      </div>
+      <table className="list-table">
         <thead>
           <tr>
             <th>Employee</th>
@@ -253,102 +295,77 @@ const EmployeeList = () => {
         </thead>
         <tbody>{renderTableRows()}</tbody>
       </table>
+      <br />
+      <div>Total payout: 0 {process.env.REACT_APP_TOKEN_TIKER}</div>
+      <br />
+      <div>
+        Smart contract balance: {}
+        {smartContractBalance}
+      </div>
+      <br />
+      <button className="list-pay-button">Payout to everyone</button>
 
       {showEditModal && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h2 style={{ textAlign: 'center' }}>Editing</h2>
+        <div className="list-modal-overlay">
+          <div className="list-modal">
+            <h2>Editing</h2>
             <p>Leave 0 if you don't want to change the field</p>
-            <div className="employee-form">
-              <div className="form-group">
-                <label className="label">Salary</label>
+            <div>
+              <div>
+                <label>Salary</label>
                 <input
                   type="text"
                   id="editSalary"
                   name="editSalary"
-                  className={`form-input ${
-                    fieldFocused.salary || newEmployee.salary !== ''
-                      ? 'form-input-filled'
-                      : ''
-                  }`}
+                  className="list-modal-input"
                   value={editSalary}
                   onChange={handleEditInputChange}
                   onFocus={() => handleFieldFocus('salary')}
                   onBlur={() => handleFieldBlur('salary')}
                 />
-                <label
-                  className={`form-label ${
-                    fieldFocused.salary || newEmployee.salary !== ''
-                      ? 'form-label-hidden'
-                      : ''
-                  }`}
-                  htmlFor="salary"
-                >
+                <label htmlFor="salary">
                   {fieldFocused.salary || newEmployee.salary !== '' ? '' : ''}
                 </label>
               </div>
 
-              <div className="form-group">
+              <div>
                 <label>Bonus</label>
                 <input
                   type="text"
                   id="editBonus"
                   name="editBonus"
-                  className={`form-input ${
-                    fieldFocused.bonus || newEmployee.bonus !== ''
-                      ? 'form-input-filled'
-                      : ''
-                  }`}
+                  className="list-modal-input"
                   value={editBonus}
                   onChange={handleEditInputChange}
                   onFocus={() => handleFieldFocus('bonus')}
                   onBlur={() => handleFieldBlur('bonus')}
                 />
-                <label
-                  className={`form-label ${
-                    fieldFocused.bonus || newEmployee.bonus !== ''
-                      ? 'form-label-hidden'
-                      : ''
-                  }`}
-                  htmlFor="bonus"
-                >
+                <label htmlFor="bonus">
                   {fieldFocused.bonus || newEmployee.bonus !== ''
                     ? ''
                     : 'Bonus'}
                 </label>
               </div>
 
-              <div className="form-group">
+              <div>
                 <label>Penalty</label>
                 <input
                   type="text"
                   id="editPenalty"
                   name="editPenalty"
-                  className={`form-input ${
-                    fieldFocused.penalty || newEmployee.penalty !== ''
-                      ? 'form-input-filled'
-                      : ''
-                  }`}
+                  className="list-modal-input"
                   value={editPenalty}
                   onChange={handleEditInputChange}
                   onFocus={() => handleFieldFocus('penalty')}
                   onBlur={() => handleFieldBlur('penalty')}
                 />
-                <label
-                  className={`form-label ${
-                    fieldFocused.penalty || newEmployee.penalty !== ''
-                      ? 'form-label-hidden'
-                      : ''
-                  }`}
-                  htmlFor="penalty"
-                >
+                <label htmlFor="penalty">
                   {fieldFocused.penalty || newEmployee.penalty !== ''
                     ? ''
                     : 'Penalty'}
                 </label>
               </div>
 
-              {error && <p className="error">{error}</p>}
               <div className="button-group">
                 <button className="add-employee-button" onClick={saveChanges}>
                   Save changes
