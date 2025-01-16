@@ -1,4 +1,4 @@
-## WagePayments
+## Salary Payment
 In this web3 application you can keep track of employees' payroll. Add/delete employees, assign them a salary, bonuses and penalties. Pay salaries with selected tokens from the smart contract address.
 
 ### Install

@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  salary:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: salary_payment
+    ports:
+      - '${SERVER_PORT}:3500'
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/dist
+      - /usr/src/app/node_modules
+    command: sh -c "npm run migrate:up && npm run start"
+
+  postgres:
+    image: postgres:15
+    container_name: salary_payment_postgres
+    ports:
+      - '5432:5432'
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
