@@ -1,0 +1,23 @@
+.add-employee__button {
+  background-color: antiquewhite;
+  color: black;
+  width: 180px;
+  padding: 10px 16px;
+  border-radius: 4px;
+  border: 1.5px solid gray;
+  cursor: pointer;
+  display: inline-block;
+  transition: background-color 0.3s;
+  margin: 5px;
+}
+
+.add-employee__button:hover {
+  background-color: rgb(233, 192, 139);
+}
+
+@media (max-width: 768px) {
+  .add-employee__button {
+    width: 100%;
+    font-size: 16px;
+  }
+}

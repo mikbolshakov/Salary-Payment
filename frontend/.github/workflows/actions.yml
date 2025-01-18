@@ -1,0 +1,39 @@
+name: Deploy Service
+
+on:
+  push:
+    branches:
+      - main # Trigger for push to main branch. Change if necessary.
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Clone the repository
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Step 2: Install the SSH client
+      - name: Install SSH client
+        run: sudo apt-get install -y sshpass
+
+      # Step 3: Copy files to a remote server
+      - name: Copy files to server
+        env:
+          SSHPASS: ${{ secrets.SSH_PASSWORD }}
+        run: |
+          cd ${{ github.workspace }}
+          sshpass -e scp -o StrictHostKeyChecking=no -r * root@16.03.97.777:/opt/salary-payment-back
+
+      # Step 4: Execute commands on the remote server
+      - name: Run docker compose commands on server
+        env:
+          SSHPASS: ${{ secrets.SSH_PASSWORD }}
+        run: |
+          sshpass -e ssh -o StrictHostKeyChecking=no root@16.03.97.777 << 'EOF'
+          cd /opt/salary-payment-front
+          export COMMIT_HASH=$(cat .git/HEAD | cut -d' ' -f2 | xargs git rev-parse --short)
+          docker compose build --build-arg COMMIT_HASH=${COMMIT_HASH}
+          docker compose up -d
+          EOF

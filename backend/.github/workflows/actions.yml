@@ -3,7 +3,7 @@ name: Deploy Service
 on:
   push:
     branches:
-      - main  # Trigger for push to main branch. Change if necessary.
+      - main # Trigger for push to main branch. Change if necessary.
 
 jobs:
   deploy:
@@ -21,7 +21,7 @@ jobs:
       # Step 3: Copy files to a remote server
       - name: Copy files to server
         env:
-          SSHPASS: ${{ secrets.SSH_PASSWORD }}  
+          SSHPASS: ${{ secrets.SSH_PASSWORD }}
         run: |
           cd ${{ github.workspace }}
           sshpass -e scp -o StrictHostKeyChecking=no -r * root@16.03.97.777:/opt/salary-payment-back

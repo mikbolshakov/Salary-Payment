@@ -1,0 +1,117 @@
+.payment {
+  display: flex;
+  justify-content: space-between;
+  background-color: #e9ecef;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  padding: 15px;
+}
+
+.payment__left,
+.payment__right {
+  flex: 1;
+  min-width: 300px;
+}
+
+.payment__admin-section {
+  margin-bottom: 8px;
+}
+
+.payment__admin-title {
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.payment__admin,
+.payment__admins span {
+  display: block;
+  font-size: 14px;
+  color: #495057;
+}
+
+.payment__admins {
+  margin-bottom: 8px;
+}
+
+.payment__right {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: right;
+}
+
+.payment__info {
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.payment__info a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.payment__info a:hover {
+  text-decoration: underline;
+}
+
+.payment__buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.payment__button--green {
+  background-color: #27cd4e;
+  color: black;
+  width: 140px;
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: 1.5px solid gray;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.payment__button--green:hover {
+  background-color: #2aa645;
+}
+
+.payment__button--brown {
+  background-color: antiquewhite;
+  color: black;
+  width: 140px;
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: 1.5px solid gray;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.payment__button--brown:hover {
+  background-color: rgb(233, 192, 139);
+}
+
+@media (max-width: 768px) {
+  .payment {
+    flex-direction: column;
+  }
+
+  .payment__right {
+    text-align: left;
+    margin-top: 15px;
+  }
+
+  .payment__buttons {
+    justify-content: flex-start;
+  }
+
+  .payment__button--green {
+    font-size: 16px;
+    width: 50%;
+  }
+
+  .payment__button--brown {
+    font-size: 16px;
+    width: 50%;
+  }
+}

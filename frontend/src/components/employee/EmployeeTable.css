@@ -1,0 +1,88 @@
+.employee-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 16px;
+  text-align: left;
+}
+
+.employee-table__header {
+  background-color: #f4f4f4;
+}
+
+.employee-table__header-cell {
+  padding: 12px;
+  border-bottom: 2px solid #ddd;
+  font-weight: bold;
+}
+
+.employee-table__row {
+  border-bottom: 1px solid #ddd;
+}
+
+.employee-table__row:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.employee-table__row:hover {
+  background-color: #f1f1f1;
+}
+
+.employee-table__cell {
+  padding: 12px;
+  vertical-align: middle;
+}
+
+.employee-table__cell--wallet {
+  font-size: 14px;
+  word-break: break-all;
+}
+
+.employee-table__cell--label {
+  display: none;
+  font-weight: bold;
+  margin-right: 8px;
+}
+
+.employee-table__button {
+  background-color: antiquewhite;
+  color: black;
+  width: 120px;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  border: 1.5px solid gray;
+  transition: background-color 0.3s;
+}
+
+.employee-table__button:hover {
+  background-color: rgb(233, 192, 139);
+}
+
+@media (max-width: 768px) {
+  .employee-table {
+    width: 100%;
+    display: block;
+  }
+
+  .employee-table__header {
+    display: none;
+  }
+
+  .employee-table__row {
+    display: block;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .employee-table__cell {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-bottom: 1px solid #f4f4f4;
+  }
+
+  .employee-table__cell--label {
+    display: inline-block;
+  }
+}

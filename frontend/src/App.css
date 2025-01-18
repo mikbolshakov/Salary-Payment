@@ -1,288 +1,45 @@
 .container {
-  max-width: 100%;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-.connect-button {
-  float: right;
-  background-color: antiquewhite;
-  padding: 10px;
-  margin: 5px;
-  border-radius: 5px;
-  font-size: 15px;
-  width: 100%;
-  max-width: 174px;
-}
-.connect-button:hover {
-  background-color: rgb(216, 199, 177);
-  cursor: pointer;
-}
-
-.title {
-  text-align: center;
-  font-size: 24px;
-  margin-top: 60px;
-  padding: 10px;
-}
-
-.total-payout {
-  margin-top: 20px;
-  font-size: 20px;
-  margin-left: 70%;
-}
-
-.create-employee-button {
-  float: right;
-  background-color: antiquewhite;
-  padding: 10px;
-  margin: 5px;
-  border-radius: 5px;
-  font-size: 15px;
-  width: 100%;
-}
-.create-employee-button:hover {
-  background-color: rgb(216, 199, 177);
-  cursor: pointer;
-}
-
-.table-button {
-  margin-top: 10px;
-  background-color: antiquewhite;
-  padding: 10px;
-  width: 100%;
-  border-radius: 5px;
-  font-size: 15px;
-}
-.table-button:hover {
-  background-color: rgb(216, 199, 177);
-  cursor: pointer;
-}
-.total-bottom {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  margin-top: 20px;
-  margin-right: 20px;
-  position: relative;
-}
-.total-button:hover {
-  background-color: rgb(216, 199, 177);
-  cursor: pointer;
-}
-
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-}
-
-.table th {
-  background-color: lightgray;
-  padding: 10px;
-  text-align: left;
-}
-
-.table td {
-  padding: 10px;
-}
-
-.lablelMobile {
-  display: none;
-}
-
-.action-buttons button {
-  margin-right: 5px;
-}
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal {
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 8px;
-}
-
-.employee-form {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  padding: 20px;
 }
 
-.form-group {
-  margin-bottom: 15px;
-  position: relative;
-}
-
-.label {
-  display: inline-block;
-  margin-bottom: 5px;
-  font-weight: bold;
-  color: #333;
-  margin-right: 5px;
-}
-
-.form-input {
-  width: 300px;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  transition: border-color 0.3s;
-  margin-left: 5px;
-}
-
-.form-label {
-  position: absolute;
-  top: 50%;
-  left: 10px;
-  transform: translateY(-50%);
-  color: #999;
-  pointer-events: none;
-  transition: all 0.2s;
-}
-
-.form-input-filled + .form-label,
-.form-input:focus + .form-label {
-  top: 0;
-  font-size: 12px;
-  color: #999;
-}
-
-.form-label-hidden {
-  display: none;
-}
-
-.button-group {
+.top-bar {
   display: flex;
-  justify-content: space-around;
-  margin-top: 15px;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 20px;
 }
 
-.button-group button {
-  margin: 0 15px;
+.actions {
+  display: flex;
+  gap: 10px;
 }
 
-.add-employee-button {
-  margin-right: 15px;
-  padding: 8px 16px;
-  background-color: #4caf50;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.add-employee-button:hover {
-  background-color: #18681b;
-}
-
-.close-modal-button {
-  padding: 8px 16px;
-  background-color: #b9b9b9;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.close-modal-button:hover {
-  background-color: #999;
-}
-
-.search-container {
-  margin-bottom: 10px;
-  display: inline-block;
-}
-
-.search-input {
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 16px;
-  width: 300px;
-  max-width: 100%;
-  margin-left: 10px;
-}
-
-/* media screen */
-@media screen and (max-width: 768px) {
+@media (max-width: 768px) {
   .container {
-    padding: 10px;
-  }
-
-  .title {
-    margin-top: 30px;
-  }
-
-  .connect-button,
-  .create-employee-button,
-  .table-button {
-    width: 100%;
-    max-width: none;
-    margin-right: 0;
-  }
-
-  .total-payout,
-  .total-bottom {
-    margin-right: 10px;
-  }
-
-  .form-input {
-    width: 100%;
-    max-width: none;
-  }
-}
-
-@media screen and (max-width: 400px) {
-  .table-button {
-    margin-top: 0;
-  }
-
-  .smallText {
-    font-size: 14px;
-  }
-
-  .table td {
-    padding-bottom: 0;
-    padding-left: 0;
-  }
-
-  .lablelMobile {
-    display: flex;
-    background: lightgray;
-    height: 30px;
-    font-weight: 500;
     align-items: center;
-    margin-bottom: 4px;
-    padding-left: 8px;
-    width: 100%;
   }
 
-  .table tr {
-    display: flex;
+  .top-bar {
     flex-direction: column;
-    margin-bottom: 24px;
+    align-items: center;
   }
 
-  .table thead {
-    display: none;
+  .actions {
+    flex-direction: column;
+    width: 100%;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .top-bar > * {
+    margin-bottom: 15px;
+    width: 100%;
   }
 
   .connect-button {
-    margin-right: 0 !important;
-  }
-
-  .total-payout {
-    margin-left: 0;
+    width: 100%;
   }
 }
