@@ -1,0 +1,23 @@
+{
+  "semi": true,
+  "bracketSpacing": true,
+  "tabWidth": 2,
+  "singleQuote": true,
+  "trailingComma": "all",
+  "printWidth": 100,
+  "overrides": [
+    {
+      "files": "*.sol",
+      "options": {
+        "tabWidth": 4,
+        "singleQuote": false
+      }
+    },
+    {
+      "files": "test/**",
+      "options": {
+        "printWidth": 100
+      }
+    }
+  ]
+}
