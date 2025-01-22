@@ -58,7 +58,7 @@ const AddEmployeeModal: FC<AddEmployeeModalProps> = ({
   return (
     <div className="add-employee-modal__overlay">
       <div className="add-employee-modal__container">
-      <h2 className="add-employee-modal__title">Add Employee</h2>
+        <h2 className="add-employee-modal__title">Add Employee</h2>
         {error && <div className="add-employee-modal__error">{error}</div>}
         <div className="add-employee-modal__field">
           <input

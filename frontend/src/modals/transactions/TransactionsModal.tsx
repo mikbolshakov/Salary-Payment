@@ -22,7 +22,7 @@ const TransactionsModal: FC<TransactionsModalProps> = ({
           <table className="transactions-modal__table">
             <thead className="transactions-modal__table-head">
               <tr className="transactions-modal__table-row">
-              <th className="transactions-modal__table-header">Date</th>
+                <th className="transactions-modal__table-header">Date</th>
                 <th className="transactions-modal__table-header">Amount</th>
                 <th className="transactions-modal__table-header">Link</th>
               </tr>

@@ -61,7 +61,7 @@ const EditEmployeeModal: FC<EditEmployeeModalProps> = ({
                 )
               }
             >
-Update Salary
+              Update Salary
             </button>
           </div>
           <div className="edit-employee-modal__input-group">
@@ -77,11 +77,11 @@ Update Salary
                 handleUpdateBonus(walletAddress, editBonus, onClose, setLoading)
               }
             >
-          Update Bonus
+              Update Bonus
             </button>
           </div>
           <div className="edit-employee-modal__input-group">
-          <label>Penalty:</label>
+            <label>Penalty:</label>
             <input
               type="number"
               value={editPenalty}

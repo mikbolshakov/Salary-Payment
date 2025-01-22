@@ -14,8 +14,8 @@ export const paySalaries = async (
     const receipt = await tx.wait();
 
     if (receipt?.status !== 1) {
-        console.error('Transaction on the smart contract failed');
-        alert('Transaction on the smart contract failed');
+      console.error('Transaction on the smart contract failed');
+      alert('Transaction on the smart contract failed');
       return;
     }
 

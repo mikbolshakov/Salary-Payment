@@ -31,9 +31,7 @@ function ConnectButton() {
             : () => connectWalletHandler(setMetaMaskConnected, setWalletAddress)
         }
       >
-        {metaMaskConnected
-          ? shortAddress(walletAddress)
-          : 'Connect MetaMask'}
+        {metaMaskConnected ? shortAddress(walletAddress) : 'Connect MetaMask'}
       </button>
     </>
   );

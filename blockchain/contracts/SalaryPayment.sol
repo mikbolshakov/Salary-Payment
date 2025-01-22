@@ -83,7 +83,7 @@ contract SalaryPayment is AccessControl {
 
     function addEmployee(address _wallet, uint256 _salary) external onlyRole(SALARY_ROLE) {
         require(employees[_wallet].salary == 0, "Employee already exists");
-        require(_salary > 0, "Employee already exists");
+        require(_salary > 0, "Salary should be more than 0");
         employees[_wallet] = Employee(_salary, 0, 0);
         employeeList.push(_wallet);
 
