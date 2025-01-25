@@ -1,7 +1,6 @@
 import { ethers } from 'ethers';
 import contractAbi from '../ABI/contractAbi.json';
-
-const contractAddress = process.env.REACT_APP_SALARY_CONTRACT_ADDRESS as string;
+import { CONTRACT_ADDRESS } from '../constants/constants';
 
 export const getContract = async () => {
   if (!window.ethereum) {
@@ -12,7 +11,7 @@ export const getContract = async () => {
   const signer = provider.getSigner();
 
   const contract = new ethers.Contract(
-    contractAddress,
+    CONTRACT_ADDRESS,
     contractAbi,
     await signer,
   );

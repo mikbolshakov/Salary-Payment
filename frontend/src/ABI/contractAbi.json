@@ -7,29 +7,83 @@
     "stateMutability": "nonpayable",
     "type": "constructor"
   },
+  { "inputs": [], "name": "AccessControlBadConfirmation", "type": "error" },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "account", "type": "address" },
+      { "internalType": "bytes32", "name": "neededRole", "type": "bytes32" }
+    ],
+    "name": "AccessControlUnauthorizedAccount",
+    "type": "error"
+  },
   {
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "employeeNumber",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
+        "indexed": true,
         "internalType": "address",
-        "name": "employeeWallet",
+        "name": "wallet",
         "type": "address"
       },
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "employeeSalary",
+        "name": "bonus",
         "type": "uint256"
       }
     ],
-    "name": "AddEmployee",
+    "name": "BonusUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "wallet",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "salary",
+        "type": "uint256"
+      }
+    ],
+    "name": "EmployeeAdded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "wallet",
+        "type": "address"
+      }
+    ],
+    "name": "EmployeeRemoved",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "wallet",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "penalty",
+        "type": "uint256"
+      }
+    ],
+    "name": "PenaltyUpdated",
     "type": "event"
   },
   {
@@ -108,6 +162,38 @@
     "type": "event"
   },
   {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "totalAmount",
+        "type": "uint256"
+      }
+    ],
+    "name": "SalariesPaid",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "wallet",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "salary",
+        "type": "uint256"
+      }
+    ],
+    "name": "SalaryUpdated",
+    "type": "event"
+  },
+  {
     "inputs": [],
     "name": "DEFAULT_ADMIN_ROLE",
     "outputs": [{ "internalType": "bytes32", "name": "", "type": "bytes32" }],
@@ -133,118 +219,50 @@
   },
   {
     "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_employeeNumber",
-        "type": "uint256"
-      }
+      { "internalType": "uint256", "name": "_amount", "type": "uint256" }
     ],
-    "name": "calculatePayoutAmount",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_employeeNumber",
-        "type": "uint256"
-      }
-    ],
-    "name": "checkEmployeeBonus",
-    "outputs": [
-      { "internalType": "uint256", "name": "employeeBonus", "type": "uint256" }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_employeeWallet",
-        "type": "address"
-      }
-    ],
-    "name": "checkEmployeeNumber",
-    "outputs": [
-      { "internalType": "uint256", "name": "employeeNumber", "type": "uint256" }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_employeeNumber",
-        "type": "uint256"
-      }
-    ],
-    "name": "checkEmployeePenalty",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "employeePenalty",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_employeeNumber",
-        "type": "uint256"
-      }
-    ],
-    "name": "checkEmployeeSalary",
-    "outputs": [
-      { "internalType": "uint256", "name": "employeeSalary", "type": "uint256" }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_employeeNumber",
-        "type": "uint256"
-      }
-    ],
-    "name": "checkEmployeeWallet",
-    "outputs": [
-      { "internalType": "address", "name": "employeeWallet", "type": "address" }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_employeeNumber",
-        "type": "uint256"
-      }
-    ],
-    "name": "deleteEmployee",
+    "name": "depositTokens",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
-    "inputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "name": "employees",
+    "inputs": [
+      { "internalType": "address", "name": "_wallet", "type": "address" }
+    ],
+    "name": "getEmployeeBonus",
     "outputs": [
-      { "internalType": "address", "name": "wallet", "type": "address" },
-      { "internalType": "uint256", "name": "salary", "type": "uint256" },
-      { "internalType": "uint256", "name": "bonus", "type": "uint256" },
+      { "internalType": "uint256", "name": "bonus", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_wallet", "type": "address" }
+    ],
+    "name": "getEmployeePenalty",
+    "outputs": [
       { "internalType": "uint256", "name": "penalty", "type": "uint256" }
     ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_wallet", "type": "address" }
+    ],
+    "name": "getEmployeeSalary",
+    "outputs": [
+      { "internalType": "uint256", "name": "salary", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getEmployeesCount",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
     "stateMutability": "view",
     "type": "function"
   },
@@ -279,15 +297,28 @@
   },
   {
     "inputs": [],
-    "name": "paySalary",
+    "name": "payAllSalaries",
     "outputs": [],
     "stateMutability": "payable",
     "type": "function"
   },
   {
     "inputs": [
+      { "internalType": "address", "name": "_wallet", "type": "address" }
+    ],
+    "name": "removeEmployee",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
       { "internalType": "bytes32", "name": "role", "type": "bytes32" },
-      { "internalType": "address", "name": "account", "type": "address" }
+      {
+        "internalType": "address",
+        "name": "callerConfirmation",
+        "type": "address"
+      }
     ],
     "name": "renounceRole",
     "outputs": [],
@@ -315,11 +346,7 @@
   },
   {
     "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_employeeNumber",
-        "type": "uint256"
-      },
+      { "internalType": "address", "name": "_wallet", "type": "address" },
       { "internalType": "uint256", "name": "_bonus", "type": "uint256" }
     ],
     "name": "setEmployeeBonus",
@@ -329,11 +356,7 @@
   },
   {
     "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_employeeNumber",
-        "type": "uint256"
-      },
+      { "internalType": "address", "name": "_wallet", "type": "address" },
       { "internalType": "uint256", "name": "_penalty", "type": "uint256" }
     ],
     "name": "setEmployeePenalty",
@@ -343,11 +366,7 @@
   },
   {
     "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_employeeNumber",
-        "type": "uint256"
-      },
+      { "internalType": "address", "name": "_wallet", "type": "address" },
       { "internalType": "uint256", "name": "_salary", "type": "uint256" }
     ],
     "name": "setEmployeeSalary",

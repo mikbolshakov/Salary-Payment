@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { parseUnits } from 'ethers';
 import { getContract } from '../utils/getContract';
+import { GAS_LIMIT } from '../constants/constants';
 
 export const handleUpdateBonus = async (
   walletAddress: string,
@@ -12,13 +13,11 @@ export const handleUpdateBonus = async (
 
   try {
     const contract = await getContract();
-    const employeeNumber = await contract.checkEmployeeNumber(walletAddress);
-    console.log('Employee number:', employeeNumber);
 
     const tx = await contract.setEmployeeBonus(
-      employeeNumber,
+      walletAddress,
       parseUnits(editBonus.toString(), 18),
-      { gasLimit: 2000000 },
+      { gasLimit: GAS_LIMIT },
     );
 
     const receipt = await tx.wait();

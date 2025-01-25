@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { getContract } from '../utils/getContract';
 import { Employee } from '../interfaces/Employee';
+import { GAS_LIMIT } from '../constants/constants';
 
 export const paySalaries = async (
   employees: Employee[],
@@ -9,7 +10,7 @@ export const paySalaries = async (
   try {
     const contract = await getContract();
     const tx = await contract.paySalary({
-      gasLimit: 2000000,
+      gasLimit: GAS_LIMIT,
     });
     const receipt = await tx.wait();
 
@@ -20,7 +21,7 @@ export const paySalaries = async (
     }
 
     const formattedDate = new Date().toISOString().split('T')[0];
-    const explorerLink = `https://bscscan.com/tx/${receipt.hash}`;
+    const explorerLink = `https://sepolia.etherscan.io/tx/${receipt.hash}`;
 
     const transactionData = {
       date: formattedDate,

@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { getContract } from '../utils/getContract';
+import { GAS_LIMIT } from '../constants/constants';
 
 export const handleDeleteEmployee = async (
   walletAddress: string,
@@ -9,11 +10,9 @@ export const handleDeleteEmployee = async (
 
   try {
     const contract = await getContract();
-    const employeeNumber = await contract.checkEmployeeNumber(walletAddress);
-    console.log('Employee number:', employeeNumber);
 
-    const tx = await contract.deleteEmployee(employeeNumber, {
-      gasLimit: 2000000,
+    const tx = await contract.deleteEmployee(walletAddress, {
+      gasLimit: GAS_LIMIT,
     });
     const receipt = await tx.wait();
 

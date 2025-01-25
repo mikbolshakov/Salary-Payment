@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { shortAddress } from './connectionConfig';
+import { shortAddress } from '../../constants/constants';
 import { connectWalletHandler } from '../../utils/connectWallet';
 import './ConnectButton.css';
 

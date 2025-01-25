@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { paySalaries } from './services/paySalaries';
 import { fetchEmployees } from './utils/fetchEmpoyees';
 import { fetchTransactions } from './utils/fetchTransactions';
-import { checkBalance } from './utils/checkBalance';
-import { checkUsdBalance } from './utils/checkUsdBalance';
+import { fetchContractBalance } from './utils/fetchContractBalance';
+import { fetchAdminUsdBalance } from './utils/fetchAdminUsdBalance';
 import Loader from './components/loader/Loader';
 import ConnectButton from './components/connect/ConnectButton';
 import PaymentComponent from './components/payment/PaymentComponent';
@@ -43,8 +43,8 @@ const App = () => {
 
   useEffect(() => {
     getEmployees();
-    getBalance();
-    getUsdBalance();
+    getContractBalance();
+    getAdminUsdBalance();
   }, []);
 
   useEffect(() => {
@@ -60,9 +60,9 @@ const App = () => {
     }
   };
 
-  const getBalance = async () => {
+  const getContractBalance = async () => {
     try {
-      const formattedBalance = await checkBalance();
+      const formattedBalance = await fetchContractBalance();
       const balance = formattedBalance ? parseFloat(formattedBalance) : 0;
       setTokenBalance(balance);
     } catch (error) {
@@ -70,9 +70,9 @@ const App = () => {
     }
   };
 
-  const getUsdBalance = async () => {
+  const getAdminUsdBalance = async () => {
     try {
-      const formattedBalance = await checkUsdBalance();
+      const formattedBalance = await fetchAdminUsdBalance();
       const balance = formattedBalance ? parseFloat(formattedBalance) : 0;
       setUsdBalance(balance);
     } catch (error) {

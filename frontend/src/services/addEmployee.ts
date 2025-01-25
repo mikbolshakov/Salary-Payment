@@ -4,6 +4,7 @@ import { parseUnits } from 'ethers';
 import { validateForm } from '../utils/validateForm';
 import { getContract } from '../utils/getContract';
 import { Employee } from '../interfaces/Employee';
+import { GAS_LIMIT } from '../constants/constants';
 
 export const handleAddEmployee = async (
   newEmployee: Employee,
@@ -20,7 +21,7 @@ export const handleAddEmployee = async (
     const tx = await contract.addEmployee(
       newEmployee.wallet_address,
       parseUnits(newEmployee.salary, 18),
-      { gasLimit: 2000000 },
+      { gasLimit: GAS_LIMIT },
     );
 
     const receipt = await tx.wait();
