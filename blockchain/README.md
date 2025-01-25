@@ -11,3 +11,11 @@ REPORT_GAS=true npx hardhat test
 npx hardhat node
 npx hardhat ignition deploy ./ignition/modules/Lock.ts
 ```
+
+Salary Token:
+
+- https://sepolia.etherscan.io/address/0x2472eAf4728C3633c10CB460A59B6762cdd5e9D5
+
+Salary Payment:
+
+- https://sepolia.etherscan.io/address/0xAe8eE9746cB36523604fcfCE946B367DF4056951

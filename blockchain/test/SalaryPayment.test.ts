@@ -1,12 +1,12 @@
 import { ethers, ignition } from 'hardhat';
-import tokenAbi from '../ABI/SalaryTokenABI.json';
 import { SalaryPayment, SalaryToken } from '../typechain-types';
 import { HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
 import { expect } from 'chai';
-import TokenModule from '../ignition/modules/SalTok';
+import { parseEther } from 'ethers';
+import TokenModule from '../ignition/modules/SalaryToken';
 import PaymentModule from '../ignition/modules/SalaryPayment';
 
-describe('SalaryIssuance Test', () => {
+describe('SalaryPayment Test', () => {
   let SalaryToken: SalaryToken;
   let SalaryPayment: SalaryPayment;
   let signers: HardhatEthersSigner[];
@@ -31,10 +31,12 @@ describe('SalaryIssuance Test', () => {
     SalaryToken = salaryToken as unknown as SalaryToken;
 
     const totalSupply = await salaryToken.totalSupply();
-    expect(totalSupply).to.equal(ethers.parseEther('1000000'));
+    expect(totalSupply).to.equal(parseEther('1000000'));
   });
 
   it('Deploy Payment contract', async () => {
+    const depositAmount = parseEther('10000');
+
     const { payment } = await ignition.deploy(PaymentModule, {
       parameters: {
         PaymentModule: {
@@ -48,41 +50,30 @@ describe('SalaryIssuance Test', () => {
     expect(payment.target).to.be.properAddress;
     SalaryPayment = payment as unknown as SalaryPayment;
 
-    await SalaryToken.connect(admin).approve(SalaryPayment.target, ethers.parseEther('10000000'));
-    await SalaryPayment.depositTokens(ethers.parseEther('10000'));
-    const paymentBalance = await SalaryToken.balanceOf(SalaryPayment.target);
-    expect(paymentBalance).to.eq(ethers.parseEther('10000'));
+    await SalaryToken.connect(admin).approve(SalaryPayment.target, depositAmount);
+    await SalaryPayment.depositTokens(depositAmount);
+
+    const paymentContractBalance = await SalaryToken.balanceOf(SalaryPayment.target);
+    expect(paymentContractBalance).to.eq(depositAmount);
   });
 
   it('Add employees and check their salary', async () => {
-    const salary1 = ethers.parseUnits('1000', 6);
-    const salary2 = ethers.parseUnits('800', 6);
-    const salary3 = ethers.parseUnits('2100', 6);
+    const salary1 = parseEther('1000');
+    const salary2 = parseEther('800');
+    const salary3 = parseEther('2100');
 
     expect(SalaryPayment.connect(employee2).addEmployee(employee3.address, salary3)).to.be
       .revertedWithCustomError; // onlyRole
 
-    expect(await SalaryPayment.getEmployeeCount()).to.eq(0);
+    expect(await SalaryPayment.getEmployeesCount()).to.eq(0);
     await SalaryPayment.addEmployee(employee1.address, salary1);
     await SalaryPayment.addEmployee(employee2.address, salary2);
     await SalaryPayment.addEmployee(employee3.address, salary3);
-    expect(await SalaryPayment.getEmployeeCount()).to.eq(3);
+    expect(await SalaryPayment.getEmployeesCount()).to.eq(3);
 
-    expect(await SalaryPayment.getEmployeeDetails(employee1.address)).to.deep.equal([
-      salary1,
-      0n,
-      0n,
-    ]);
-    expect(await SalaryPayment.getEmployeeDetails(employee2.address)).to.deep.equal([
-      salary2,
-      0n,
-      0n,
-    ]);
-    expect(await SalaryPayment.getEmployeeDetails(employee3.address)).to.deep.equal([
-      salary3,
-      0n,
-      0n,
-    ]);
+    expect(await SalaryPayment.getEmployeeSalary(employee1.address)).to.deep.equal(salary1);
+    expect(await SalaryPayment.getEmployeeSalary(employee2.address)).to.deep.equal(salary2);
+    expect(await SalaryPayment.getEmployeeSalary(employee3.address)).to.deep.equal(salary3);
 
     await expect(SalaryPayment.addEmployee(employee1.address, salary1)).to.be.revertedWith(
       'Employee already exists',
@@ -90,110 +81,89 @@ describe('SalaryIssuance Test', () => {
     await expect(SalaryPayment.addEmployee(admin.address, 0)).to.be.revertedWith(
       'Salary should be more than 0',
     );
-    await expect(SalaryPayment.getEmployeeDetails(admin.address)).to.be.revertedWith(
+    await expect(SalaryPayment.getEmployeeSalary(admin.address)).to.be.revertedWith(
+      'Employee does not exist',
+    );
+    await expect(SalaryPayment.getEmployeePenalty(admin.address)).to.be.revertedWith(
+      'Employee does not exist',
+    );
+    await expect(SalaryPayment.getEmployeeBonus(admin.address)).to.be.revertedWith(
       'Employee does not exist',
     );
   });
-  /*
+
   it('Set and check salary, bonuses and penalties for employees', async () => {
-    const newSalaryAmount = ethers.utils.parseUnits('1200', 6);
-    const penaltyAmount = ethers.utils.parseUnits('700', 6);
-    const bonusAmount = ethers.utils.parseUnits('1500', 6);
+    const newSalaryAmount = parseEther('1200');
+    const penaltyAmount = parseEther('700');
+    const bonusAmount = parseEther('1500');
 
     // Set salary, bonuses and penalties
-    const employeeNumber1 = await SalaryIssuance.checkEmployeeNumber(employee1.address);
-    await SalaryIssuance.setEmployeeSalary(employeeNumber1, newSalaryAmount);
-    const employeeNumber2 = await SalaryIssuance.checkEmployeeNumber(employee2.address);
-    await SalaryIssuance.setEmployeePenalty(employeeNumber2, penaltyAmount);
-    const employeeNumber3 = await SalaryIssuance.checkEmployeeNumber(employee3.address);
-    await SalaryIssuance.setEmployeeBonus(employeeNumber3, bonusAmount);
+    await SalaryPayment.setEmployeeSalary(employee1.address, newSalaryAmount);
+    await SalaryPayment.setEmployeePenalty(employee2.address, penaltyAmount);
+    await SalaryPayment.setEmployeeBonus(employee3.address, bonusAmount);
+
+    expect(SalaryPayment.connect(employee2).setEmployeeSalary(employee3.address, newSalaryAmount))
+      .to.be.revertedWithCustomError; // onlyRole
+    expect(SalaryPayment.connect(employee2).setEmployeePenalty(employee3.address, newSalaryAmount))
+      .to.be.revertedWithCustomError; // onlyRole
+    expect(SalaryPayment.connect(employee2).setEmployeeBonus(employee3.address, newSalaryAmount)).to
+      .be.revertedWithCustomError; // onlyRole
 
     // Check salary, bonuses and penalties
-    const updatedSalary = await SalaryIssuance.checkEmployeeSalary(employeeNumber1);
-    const updatedPenalty = await SalaryIssuance.checkEmployeePenalty(employeeNumber2);
-    const updatedBonus = await SalaryIssuance.checkEmployeeBonus(employeeNumber3);
-    expect(updatedPenalty).to.equal(penaltyAmount);
-    expect(updatedSalary).to.equal(newSalaryAmount);
-    expect(updatedBonus).to.equal(bonusAmount);
+    expect(await SalaryPayment.getEmployeeSalary(employee1.address)).to.deep.equal(newSalaryAmount);
+    expect(await SalaryPayment.getEmployeePenalty(employee2.address)).to.deep.equal(penaltyAmount);
+    expect(await SalaryPayment.getEmployeeBonus(employee3.address)).to.deep.equal(bonusAmount);
 
-    await expect(SalaryIssuance.setEmployeeSalary(10, newSalaryAmount)).to.be.revertedWith(
-      'Employee number does not exist',
+    await expect(
+      SalaryPayment.setEmployeeSalary(admin.address, newSalaryAmount),
+    ).to.be.revertedWith('Employee does not exist');
+    await expect(SalaryPayment.setEmployeeBonus(admin.address, newSalaryAmount)).to.be.revertedWith(
+      'Employee does not exist',
     );
-    await expect(SalaryIssuance.setEmployeeBonus(10, newSalaryAmount)).to.be.revertedWith(
-      'Employee number does not exist',
-    );
-    await expect(SalaryIssuance.setEmployeePenalty(10, newSalaryAmount)).to.be.revertedWith(
-      'Employee number does not exist',
-    );
+    await expect(
+      SalaryPayment.setEmployeePenalty(admin.address, newSalaryAmount),
+    ).to.be.revertedWith('Employee does not exist');
   });
 
-  it('Check Access Control and unprofitable employees', async () => {
-    const smallAmount = ethers.utils.parseUnits('300', 6);
-    const bigAmount = ethers.utils.parseUnits('5000', 6);
+  it('Check unprofitable employees', async () => {
+    const smallAmount = parseEther('300');
+    const bigAmount = parseEther('5000');
 
     await expect(
-      SalaryIssuance.connect(employee1).setEmployeeSalary(1, smallAmount),
-    ).to.be.revertedWith(
-      'AccessControl: account 0x70997970c51812dc3a010c7d01b50e0d17dc79c8 is missing role 0xd5275b184db1046809daf5623cc0eb88d19be67783a60d79936704ec82cfa491',
-    );
-    await expect(
-      SalaryIssuance.connect(employee2).setEmployeeBonus(2, smallAmount),
-    ).to.be.revertedWith(
-      'AccessControl: account 0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc is missing role 0xd5275b184db1046809daf5623cc0eb88d19be67783a60d79936704ec82cfa491',
-    );
-    await expect(
-      SalaryIssuance.connect(employee3).setEmployeePenalty(1, smallAmount),
-    ).to.be.revertedWith(
-      'AccessControl: account 0x90f79bf6eb2c4f870365e785982e1f101e93b906 is missing role 0xd5275b184db1046809daf5623cc0eb88d19be67783a60d79936704ec82cfa491',
-    );
-    await expect(SalaryIssuance.connect(employee3).paySalary()).to.be.revertedWith(
-      'AccessControl: account 0x90f79bf6eb2c4f870365e785982e1f101e93b906 is missing role 0xd5275b184db1046809daf5623cc0eb88d19be67783a60d79936704ec82cfa491',
-    );
-
-    await expect(SalaryIssuance.setEmployeeSalary(2, smallAmount)).to.be.revertedWith(
-      'Unprofitable employee',
-    );
-    await expect(SalaryIssuance.setEmployeePenalty(1, bigAmount)).to.be.revertedWith(
+      SalaryPayment.setEmployeeSalary(employee2.address, smallAmount),
+    ).to.be.revertedWith('Unprofitable employee');
+    await expect(SalaryPayment.setEmployeePenalty(employee1.address, bigAmount)).to.be.revertedWith(
       'Unprofitable employee',
     );
   });
 
   it('Calculate payout amount and pay salary', async () => {
-    await SalaryIssuance.setEmployeeSalary(1, ethers.utils.parseUnits('12000', 6));
-    await expect(SalaryIssuance.paySalary()).to.be.revertedWith(
-      "Contract doesn't have enough balance to pay the salary",
+    await SalaryPayment.setEmployeeSalary(employee1.address, parseEther('1000000000'));
+    await expect(SalaryPayment.payAllSalaries()).to.be.revertedWith(
+      'Insufficient contract balance',
     );
-    await SalaryIssuance.setEmployeeSalary(1, ethers.utils.parseUnits('1200', 6));
+    await SalaryPayment.setEmployeeSalary(employee1.address, parseEther('1200'));
 
-    expect(await SalaryIssuance.calculatePayoutAmount(1)).to.equal(
-      ethers.utils.parseUnits('1200', 6),
-    );
-    expect(await SalaryIssuance.calculatePayoutAmount(2)).to.equal(
-      ethers.utils.parseUnits('100', 6),
-    );
-    expect(await SalaryIssuance.calculatePayoutAmount(3)).to.equal(
-      ethers.utils.parseUnits('3600', 6),
-    );
+    expect(SalaryPayment.connect(employee2).payAllSalaries()).to.be.revertedWithCustomError; // onlyRole
 
-    await SalaryIssuance.paySalary();
-
-    expect(await SalaryIssuance.checkEmployeeSalary(1)).to.equal(
-      ethers.utils.parseUnits('1200', 6),
+    await SalaryPayment.payAllSalaries();
+    expect(await SalaryPayment.getEmployeeSalary(employee1.address)).to.deep.equal(
+      parseEther('1200'),
     );
-    expect(await SalaryIssuance.checkEmployeePenalty(2)).to.equal(0);
-    expect(await SalaryIssuance.checkEmployeeBonus(3)).to.equal(0);
+    expect(await SalaryPayment.getEmployeePenalty(employee2.address)).to.deep.equal(0);
+    expect(await SalaryPayment.getEmployeeBonus(employee3.address)).to.deep.equal(0);
   });
 
-  it('Delete employee and pay salary', async () => {
-    await expect(SalaryIssuance.connect(employee1).deleteEmployee(1)).to.be.revertedWith(
-      'AccessControl: account 0x70997970c51812dc3a010c7d01b50e0d17dc79c8 is missing role 0xd5275b184db1046809daf5623cc0eb88d19be67783a60d79936704ec82cfa491',
-    );
-    await SalaryIssuance.deleteEmployee(2);
-    await expect(SalaryIssuance.deleteEmployee(10)).to.be.revertedWith(
-      'Employee number does not exist',
-    );
-    await expect(SalaryIssuance.deleteEmployee(2)).to.be.revertedWith('Employee already deleted');
+  it('Remove employee', async () => {
+    expect(SalaryPayment.connect(employee2).removeEmployee(employee3.address)).to.be
+      .revertedWithCustomError; // onlyRole
 
-    await SalaryIssuance.paySalary();
-  });*/
+    expect(await SalaryPayment.getEmployeesCount()).to.eq(3);
+    await SalaryPayment.removeEmployee(employee2.address);
+    expect(await SalaryPayment.getEmployeesCount()).to.eq(2);
+
+    await expect(SalaryPayment.removeEmployee(admin.address)).to.be.revertedWith(
+      'Employee does not exist',
+    );
+  });
 });
